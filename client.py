@@ -33,25 +33,27 @@ def Show_Login_Error():
         title="Error", message="Lỗi kết nối")
     
 def validateLogin(username, password):
+    global isCorrect
     client_socket.sendall(bytes(username.get(),'utf8'))
     client_socket.sendall(bytes(password.get(),'utf8'))
     success_or_not = client_socket.recv(BUFSIZ).decode("utf8")
     print(success_or_not, " ngay cho nay")
     if (success_or_not=="Login Success"):
         Show_Login_Success()
+        isCorrect = True
     else:
         Show_Login_Error()
 
 isConnected = False
-isSend = False
+isCorrect = False
 def Thread_Connect():
-    global isSend
+    global isCorrect
     global isConnected
-    if (isSend or not isConnected):
+    if (isCorrect or not isConnected):
         return
-    isSend = True
     tConnect = Thread(target=validateLogin)
     tConnect.start()
+    print("chua log in dc")
     
 def thread_UI():
     loginButton = Button(tkWindow, text="Login", command=Thread_Connect)
@@ -140,21 +142,7 @@ entryIP.grid(row=0, column=1, pady=20, sticky=W +
 
 entryIP.insert(END, '127.0.0.1')
 
-'''
-scrollbar = tkinter.Scrollbar(messages_frame)  # To navigate through past messages.
-# Following will contain the messages.
-msg_list = tkinter.Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
-scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
-msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
-msg_list.pack()
-messages_frame.pack()
 
-entry_field = tkinter.Entry(top, textvariable=my_msg)
-entry_field.bind("<Return>", send)
-entry_field.pack()
-send_button = tkinter.Button(top, text="Gửi", command=send)
-send_button.pack()
-'''
 tkWindow.protocol("WM_DELETE_WINDOW", on_closing)
 
 #Ket noi toi server
@@ -170,10 +158,8 @@ ADDR = (HOST, PORT)
 
 client_socket = socket(AF_INET, SOCK_STREAM)
 
-print("toi day luon")
 receive_thread = Thread(target=thread_UI)
 receive_thread.start()
-
 submit_thread = Thread(target=Thread_UI_Submit)
 submit_thread.start()
 tkWindow.mainloop()  # Starts GUI execution.

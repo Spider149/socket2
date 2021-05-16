@@ -8,6 +8,7 @@ Created on Sat May 15 06:51:21 2021
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import tkinter as tk
+import json
 
 def accept_incoming_connections():
     while True:
@@ -23,34 +24,24 @@ def accept_incoming_connections():
 
 
 def handle_client(client):  # Takes client socket as argument.
-    try:
-        name = client.recv(BUFSIZ).decode("utf8")
-        pass_w = client.recv(BUFSIZ).decode("utf8")
-    except:
+    global data
+    global isLog_in
+    while (True):
+        try:
+            name = client.recv(BUFSIZ).decode("utf8")
+            pass_w = client.recv(BUFSIZ).decode("utf8")
+        except:
+            client.send(bytes("Login Error","utf8"))
+            return
+        if (name in data.keys()):
+            if (isLog_in[name]):
+                client.send(bytes("Login Error","utf8"))
+            elif data[name]==pass_w:
+                client.send(bytes("Login Success","utf8"))
+                isLog_in[name] = True
+                return
         client.send(bytes("Login Error","utf8"))
-        return
     
-    client.send(bytes("Login Success","utf8"))
-    '''    
-    print("username: ",name)
-    print("password: ",pass_w)
-    welcome = 'Xin chào %s! Nếu bạn muốn thoát gõ, {quit} để thoát.' % name
-    client.send(bytes(welcome, "utf8"))
-    msg = "%s đã tham gia phòng chat!" % name
-    broadcast(bytes(msg, "utf8"))
-    clients[client] = name
-
-    while True:
-        msg = client.recv(BUFSIZ)
-        if msg != bytes("{quit}", "utf8"):
-            broadcast(msg, name + ": ")
-        else:
-            #client.send(bytes("{quit}", "utf8"))
-            client.close()
-            del clients[client]
-            broadcast(bytes("%s đã thoát phòng chat." % name, "utf8"))
-            break
-        '''
 
 def broadcast(msg, prefix=""):  # prefix is for name identification.
     for sock in clients:
@@ -59,6 +50,8 @@ def broadcast(msg, prefix=""):  # prefix is for name identification.
 
 clients = {}
 addresses = {}
+data = {}
+isLog_in = {}
 
 HOST = '127.0.0.1'
 PORT = 33000
@@ -92,10 +85,19 @@ def onClosing():
     SERVER.close()
     root.destroy()
 
-
+def load_data():
+    global data
+    with open("data.json") as f:
+        data_load = json.load(f)
+        for x in data_load:
+            if x in data.keys():
+                continue
+            data[x] = data_load[x]
+            isLog_in[x] = False
 root = tk.Tk()
 print("Chờ kết nối từ các client...")
 tUI = Thread(target=threadUI)
 tUI.start()
+load_data()
 root.protocol("WM_DELETE_WINDOW", onClosing)
 root.mainloop()
