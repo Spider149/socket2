@@ -13,6 +13,7 @@ def accept_incoming_connections():
     while True:
         try:
             client, client_address = SERVER.accept()
+            client.sendall(bytes("-connected-","utf8"))
             print("accepted")
         except:
             break
@@ -63,7 +64,6 @@ HOST = '127.0.0.1'
 PORT = 33000
 BUFSIZ = 1024
 ADDR = (HOST, PORT)
-
 SERVER = socket(AF_INET, SOCK_STREAM)
 SERVER.bind(ADDR)
 
