@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sat May 15 06:51:27 2021
-
-@author: LENOVO
-"""
 import socket
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
@@ -15,6 +9,7 @@ import tkinter.filedialog as tkdilg
 import tkinter.ttk as ttk
 import tkinter.font as font
 
+
 def receive():
     while True:
         try:
@@ -25,25 +20,32 @@ def receive():
             break
         except:
             break
+
+
 def Show_Login_Success():
-    tkmes.showinfo(title="Success",message="Đăng nhập thành công")
+    tkmes.showinfo(title="Success", message="Đăng nhập thành công")
+
 
 def Show_Login_Error():
     tkmes.showerror(
         title="Error", message="Lỗi kết nối")
-    
+
+
 def validateLogin(username, password):
-    client_socket.sendall(bytes(username.get(),'utf8'))
-    client_socket.sendall(bytes(password.get(),'utf8'))
+    client_socket.sendall(bytes(username.get(), 'utf8'))
+    client_socket.sendall(bytes(password.get(), 'utf8'))
     success_or_not = client_socket.recv(BUFSIZ).decode("utf8")
     print(success_or_not, " ngay cho nay")
-    if (success_or_not=="Login Success"):
+    if (success_or_not == "Login Success"):
         Show_Login_Success()
     else:
         Show_Login_Error()
 
+
 isConnected = False
 isSend = False
+
+
 def Thread_Connect():
     global isSend
     global isConnected
@@ -52,11 +54,13 @@ def Thread_Connect():
     isSend = True
     tConnect = Thread(target=validateLogin)
     tConnect.start()
-    
+
+
 def thread_UI():
     loginButton = Button(tkWindow, text="Login", command=Thread_Connect)
-    loginButton.place(relx=0.43,rely=0.75)
-        
+    loginButton.place(relx=0.43, rely=0.75)
+
+
 def send(event=None):  # event is passed by binders.
     msg = my_msg.get()
     my_msg.set("")  # Clears input field.
@@ -67,9 +71,10 @@ def send(event=None):  # event is passed by binders.
 
 
 def on_closing(event=None):
-   client_socket.close()
-   tkWindow.quit()
-    
+    client_socket.close()
+    tkWindow.quit()
+
+
 def submitIP():
     host = entryIP.get()
     port = 33000
@@ -87,7 +92,10 @@ def submitIP():
     except:
         tkmes.showerror(title="Error", message="Kết nối thất bại")
 
+
 isSubmit = False
+
+
 def Thread_Submit():
     global isSubmit
     if (isSubmit):
@@ -95,12 +103,14 @@ def Thread_Submit():
     isSubmit = True
     tConnect = Thread(target=submitIP)
     tConnect.start()
-    
+
+
 def Thread_UI_Submit():
     ipBtn = Button(tkWindow, text="Kết nối", command=Thread_Submit)
     ipBtn.grid(row=0, column=2, sticky=W+S +
-           N+E, pady=20, padx=(0, 10))
-    
+               N+E, pady=20, padx=(0, 10))
+
+
 tkWindow = tkinter.Tk()
 tkWindow.title("Chatter")
 
@@ -109,27 +119,27 @@ my_msg = tkinter.StringVar()  # For the messages to be sent.
 my_msg.set("Nhập tên của bạn!.")
 
 tkWindow.geometry('350x250')
-tkWindow.minsize(350,250)  
+tkWindow.minsize(350, 250)
 tkWindow.title('Log in')
 
-#username label and text entry box
+# username label and text entry box
 usernameLabel = Label(tkWindow, text="User Name")
 usernameLabel.place(relx=0.11, rely=0.46)
 username = StringVar()
 usernameEntry = Entry(tkWindow, textvariable=username)
-usernameEntry.place(relx=0.35,rely=0.46)
+usernameEntry.place(relx=0.35, rely=0.46)
 
-#password label and password entry box
-passwordLabel = Label(tkWindow,text="Password") 
-passwordLabel.place(relx=0.11,rely=0.6)
+# password label and password entry box
+passwordLabel = Label(tkWindow, text="Password")
+passwordLabel.place(relx=0.11, rely=0.6)
 
 password = StringVar()
-passwordEntry = Entry(tkWindow, textvariable=password, show='*')  
-passwordEntry.place(relx=0.35,rely=0.6)
+passwordEntry = Entry(tkWindow, textvariable=password, show='*')
+passwordEntry.place(relx=0.35, rely=0.6)
 
 validateLogin = partial(validateLogin, username, password)
 
-#login button
+# login button
 labelIP = Label(tkWindow, text="Nhập IP:")
 labelIP.grid(row=0, column=0, pady=20, sticky=W +
              S+N+E, padx=(20, 10))
@@ -140,24 +150,9 @@ entryIP.grid(row=0, column=1, pady=20, sticky=W +
 
 entryIP.insert(END, '127.0.0.1')
 
-'''
-scrollbar = tkinter.Scrollbar(messages_frame)  # To navigate through past messages.
-# Following will contain the messages.
-msg_list = tkinter.Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
-scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
-msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
-msg_list.pack()
-messages_frame.pack()
-
-entry_field = tkinter.Entry(top, textvariable=my_msg)
-entry_field.bind("<Return>", send)
-entry_field.pack()
-send_button = tkinter.Button(top, text="Gửi", command=send)
-send_button.pack()
-'''
 tkWindow.protocol("WM_DELETE_WINDOW", on_closing)
 
-#Ket noi toi server
+# Ket noi toi server
 HOST = '127.0.0.1'
 PORT = 33000
 if not PORT:
