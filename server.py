@@ -19,6 +19,7 @@ def accept_incoming_connections():
         except:
             break
         print("%s:%s has connected." % client_address)
+        clients[client] = True
         addresses[client] = client_address
         Thread(target=handle_client, args=(client,)).start()
 
@@ -26,32 +27,49 @@ def accept_incoming_connections():
 def handle_client(client):  # Takes client socket as argument.
     global data
     global isLog_in
+    global BUFSIZ
+    Login = False
+    
     while (True):
         try:
+            message = client.recv(BUFSIZ).decode("utf8")
+        except:
+            return
+        if (message=="login" and not Login):
             name = client.recv(BUFSIZ).decode("utf8")
             pass_w = client.recv(BUFSIZ).decode("utf8")
-        except:
-            client.send(bytes("Login Error","utf8"))
-            return
-        if (name in data.keys()):
-            if (isLog_in[name]):
+            if (name in data.keys()):
+                if (isLog_in[name]):
+                    client.send(bytes("Login Error","utf8"))
+                elif (data[name]==pass_w):
+                    client.send(bytes("Login Success","utf8"))
+                    isLog_in[name] = True
+                    Login = True
+            else:
                 client.send(bytes("Login Error","utf8"))
-            elif data[name]==pass_w:
-                client.send(bytes("Login Success","utf8"))
-                isLog_in[name] = True
-                return
-        client.send(bytes("Login Error","utf8"))
+        elif (message=="register"):
+            name = client.recv(BUFSIZ).decode("utf8")
+            pass_w = client.recv(BUFSIZ).decode("utf8")
+            if (name in data.keys()):
+                client.send(bytes("Register Error","utf8"))
+            else:
+                data[name] =  pass_w
+                isLog_in[name] = False
+                with open('data.json','w') as f:
+                    json.dump(data, f)
+                    f.close()
+                client.send(bytes("Register Success","utf8"))
     
 
 def broadcast(msg, prefix=""):  # prefix is for name identification.
     for sock in clients:
         sock.send(bytes(prefix, "utf8") + msg)
-
-
+        
 clients = {}
 addresses = {}
 data = {}
 isLog_in = {}
+
 
 HOST = '127.0.0.1'
 PORT = 33000
@@ -94,7 +112,9 @@ def load_data():
                 continue
             data[x] = data_load[x]
             isLog_in[x] = False
+        f.close()
 root = tk.Tk()
+
 print("Chờ kết nối từ các client...")
 tUI = Thread(target=threadUI)
 tUI.start()
