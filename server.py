@@ -1,6 +1,7 @@
 from socket import AF_INET, socket, SOCK_STREAM
 from threading import Thread
 import tkinter as tk
+import json
 
 
 def accept_incoming_connections():
@@ -17,14 +18,23 @@ def accept_incoming_connections():
 
 
 def handle_client(client):  # Takes client socket as argument.
-    try:
-        name = client.recv(BUFSIZ).decode("utf8")
-        pass_w = client.recv(BUFSIZ).decode("utf8")
-    except:
+    global data
+    global isLog_in
+    while (True):
+        try:
+            name = client.recv(BUFSIZ).decode("utf8")
+            pass_w = client.recv(BUFSIZ).decode("utf8")
+        except:
+            client.send(bytes("Login Error", "utf8"))
+            return
+        if (name in data.keys()):
+            if (isLog_in[name]):
+                client.send(bytes("Login Error", "utf8"))
+            elif data[name] == pass_w:
+                client.send(bytes("Login Success", "utf8"))
+                isLog_in[name] = True
+                return
         client.send(bytes("Login Error", "utf8"))
-        return
-
-    client.send(bytes("Login Success", "utf8"))
 
 
 def broadcast(msg, prefix=""):  # prefix is for name identification.
@@ -34,6 +44,8 @@ def broadcast(msg, prefix=""):  # prefix is for name identification.
 
 clients = {}
 addresses = {}
+data = {}
+isLog_in = {}
 
 HOST = '127.0.0.1'
 PORT = 33000
@@ -71,9 +83,21 @@ def onClosing():
     root.destroy()
 
 
+def load_data():
+    global data
+    with open("data.json") as f:
+        data_load = json.load(f)
+        for x in data_load:
+            if x in data.keys():
+                continue
+            data[x] = data_load[x]
+            isLog_in[x] = False
+
+
 root = tk.Tk()
 print("Chờ kết nối từ các client...")
 tUI = Thread(target=threadUI)
 tUI.start()
+load_data()
 root.protocol("WM_DELETE_WINDOW", onClosing)
 root.mainloop()

@@ -32,28 +32,30 @@ def Show_Login_Error():
 
 
 def validateLogin(username, password):
+    global isCorrect
     client_socket.sendall(bytes(username.get(), 'utf8'))
     client_socket.sendall(bytes(password.get(), 'utf8'))
     success_or_not = client_socket.recv(BUFSIZ).decode("utf8")
     print(success_or_not, " ngay cho nay")
     if (success_or_not == "Login Success"):
         Show_Login_Success()
+        isCorrect = True
     else:
         Show_Login_Error()
 
 
 isConnected = False
-isSend = False
+isCorrect = False
 
 
 def Thread_Connect():
-    global isSend
+    global isCorrect
     global isConnected
-    if (isSend or not isConnected):
+    if (isCorrect or not isConnected):
         return
-    isSend = True
     tConnect = Thread(target=validateLogin)
     tConnect.start()
+    print("chua log in dc")
 
 
 def thread_UI():
@@ -165,10 +167,8 @@ ADDR = (HOST, PORT)
 
 client_socket = socket(AF_INET, SOCK_STREAM)
 
-print("toi day luon")
 receive_thread = Thread(target=thread_UI)
 receive_thread.start()
-
 submit_thread = Thread(target=Thread_UI_Submit)
 submit_thread.start()
 tkWindow.mainloop()  # Starts GUI execution.
