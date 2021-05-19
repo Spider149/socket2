@@ -1,19 +1,27 @@
 import socket
-from socket import AF_INET, socket, SOCK_STREAM
-from threading import Thread
-import tkinter
+import threading as thread
 from tkinter import *
 from functools import partial
 import tkinter.messagebox as tkmes
-import tkinter.filedialog as tkdilg
 import tkinter.ttk as ttk
 import tkinter.font as font
+
+isConnected = False
+isLogin = False
+
+clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+# Ket noi toi server
+HOST = '127.0.0.1'
+PORT = 33000
+BUFSIZ = 1024
+ADDR = (HOST, PORT)
 
 
 def receive():
     while True:
         try:
-            msg = client_socket.recv(BUFSIZ).decode("utf8")
+            msg = clientSocket.recv(BUFSIZ).decode("utf8")
             #msg_list.insert(tkinter.END, msg)
             print(msg)
         except OSError:  # Possibly client has left the chat.
@@ -22,70 +30,87 @@ def receive():
             break
 
 
-def Show_Login_Success():
-    tkmes.showinfo(title="Success", message="Đăng nhập thành công")
+def showSuccess(mes):
+    tkmes.showinfo(title="Success", message=mes)
 
 
-def Show_Login_Error():
-    tkmes.showerror(
-        title="Error", message="Lỗi kết nối")
+def showErr(mes):
+    tkmes.showinfo(title="Error", message=mes)
 
 
-def validateLogin(username, password):
-    global isCorrect
-    client_socket.sendall(bytes(username.get(), 'utf8'))
-    client_socket.sendall(bytes(password.get(), 'utf8'))
-    success_or_not = client_socket.recv(BUFSIZ).decode("utf8")
-    print(success_or_not, " ngay cho nay")
-    if (success_or_not == "Login Success"):
-        Show_Login_Success()
-        isCorrect = True
-    else:
-        Show_Login_Error()
-
-
-isConnected = False
-isCorrect = False
-
-
-def Thread_Connect():
-    global isCorrect
-    global isConnected
-    if (isCorrect or not isConnected):
+def validate(register):
+    username = usernameEntry.get()
+    password = passwordEntry.get()
+    if(username == "" or password == ""):
+        showErr("Username và password không được để trống")
         return
-    tConnect = Thread(target=validateLogin)
+    if(" " in username or " " in password or len(username) < 6 or len(password) < 6):
+        showErr(
+            "Username và password phải có 6 ký tự trở lên và không chứa khoảng trắng")
+        return
+    else:
+        if(register):
+            clientSocket.sendall(bytes('r'+username+' '+password, 'utf8'))
+        else:
+            clientSocket.sendall(bytes('l'+username+' '+password, 'utf8'))
+
+        result = clientSocket.recv(BUFSIZ).decode("utf8")
+        if(result[0] == 'F'):
+            showErr(result[2:])
+        else:
+            if(not register):
+                global isLogin
+                isLogin = True
+            showSuccess(result[2:])
+
+
+def threadConnectLogin():
+    global isConnected
+    if(not isConnected):
+        showErr("Hãy kết nối đến server trước")
+        return
+    global isLogin
+    if(isLogin):
+        return
+    tConnect = thread.Thread(target=validate, args=(False,))
     tConnect.start()
-    print("chua log in dc")
 
 
-def thread_UI():
-    loginButton = Button(tkWindow, text="Login", command=Thread_Connect)
-    loginButton.place(relx=0.43, rely=0.75)
+def threadConnectRegister():
+    global isConnected
+    if (not isConnected):
+        showErr("Hãy kết nối đến server trước")
+        return
+    tConnect = thread.Thread(target=validate, args=(True,))
+    tConnect.start()
 
 
-def send(event=None):  # event is passed by binders.
-    msg = my_msg.get()
-    my_msg.set("")  # Clears input field.
-    client_socket.send(bytes(msg, "utf8"))
-    if msg == "{quit}":
-        client_socket.close()
-        tkWindow.quit()
+def threadUILogin():
+    loginButton = Button(tkWindow, text="Login", command=threadConnectLogin)
+    loginButton.place(relx=0.35, rely=0.75)
 
 
-def on_closing(event=None):
-    client_socket.close()
-    tkWindow.quit()
+def threadUIRegis():
+    RegisButton = Button(tkWindow, text="Register",
+                         command=threadConnectRegister)
+    RegisButton.place(relx=0.55, rely=0.75)
+
+
+def onClosing():
+    global isConnected
+    if (isConnected):
+        clientSocket.sendall(bytes("quit", 'utf8'))
+    clientSocket.close()
+    tkWindow.destroy()
 
 
 def submitIP():
     host = entryIP.get()
     port = 33000
-    server_address = (host, port)
+    serverAddress = (host, port)
     try:
-        client_socket.connect(server_address)
-        #client_socket.sendall(bytes("-hello-", "utf8"))
-        data = client_socket.recv(1024).decode("utf8")
-        print(data)
+        clientSocket.connect(serverAddress)
+        data = clientSocket.recv(1024).decode("utf8")
         if data == "-connected-":
             tkmes.showinfo(title="Success",
                            message="Kết nối thành công")
@@ -95,30 +120,22 @@ def submitIP():
         tkmes.showerror(title="Error", message="Kết nối thất bại")
 
 
-isSubmit = False
-
-
-def Thread_Submit():
-    global isSubmit
-    if (isSubmit):
+def threadSubmit():
+    global isConnected
+    if (isConnected):
         return
-    isSubmit = True
-    tConnect = Thread(target=submitIP)
+    tConnect = thread.Thread(target=submitIP)
     tConnect.start()
 
 
-def Thread_UI_Submit():
-    ipBtn = Button(tkWindow, text="Kết nối", command=Thread_Submit)
+def threadUISubmit():
+    ipBtn = Button(tkWindow, text="Kết nối", command=threadSubmit)
     ipBtn.grid(row=0, column=2, sticky=W+S +
                N+E, pady=20, padx=(0, 10))
 
 
-tkWindow = tkinter.Tk()
+tkWindow = Tk()
 tkWindow.title("Chatter")
-
-#messages_frame = tkinter.Frame(top)
-my_msg = tkinter.StringVar()  # For the messages to be sent.
-my_msg.set("Nhập tên của bạn!.")
 
 tkWindow.geometry('350x250')
 tkWindow.minsize(350, 250)
@@ -127,19 +144,16 @@ tkWindow.title('Log in')
 # username label and text entry box
 usernameLabel = Label(tkWindow, text="User Name")
 usernameLabel.place(relx=0.11, rely=0.46)
-username = StringVar()
-usernameEntry = Entry(tkWindow, textvariable=username)
+
+usernameEntry = Entry(tkWindow)
 usernameEntry.place(relx=0.35, rely=0.46)
 
 # password label and password entry box
 passwordLabel = Label(tkWindow, text="Password")
 passwordLabel.place(relx=0.11, rely=0.6)
 
-password = StringVar()
-passwordEntry = Entry(tkWindow, textvariable=password, show='*')
+passwordEntry = Entry(tkWindow, show="*")
 passwordEntry.place(relx=0.35, rely=0.6)
-
-validateLogin = partial(validateLogin, username, password)
 
 # login button
 labelIP = Label(tkWindow, text="Nhập IP:")
@@ -152,23 +166,14 @@ entryIP.grid(row=0, column=1, pady=20, sticky=W +
 
 entryIP.insert(END, '127.0.0.1')
 
-tkWindow.protocol("WM_DELETE_WINDOW", on_closing)
+tkWindow.protocol("WM_DELETE_WINDOW", onClosing)
 
-# Ket noi toi server
-HOST = '127.0.0.1'
-PORT = 33000
-if not PORT:
-    PORT = 33000
-else:
-    PORT = int(PORT)
+loginThread = thread.Thread(target=threadUILogin)
+loginThread.start()
 
-BUFSIZ = 1024
-ADDR = (HOST, PORT)
+regisThread = thread.Thread(target=threadUIRegis)
+regisThread.start()
 
-client_socket = socket(AF_INET, SOCK_STREAM)
-
-receive_thread = Thread(target=thread_UI)
-receive_thread.start()
-submit_thread = Thread(target=Thread_UI_Submit)
-submit_thread.start()
+submitThread = thread.Thread(target=threadUISubmit)
+submitThread.start()
 tkWindow.mainloop()  # Starts GUI execution.
