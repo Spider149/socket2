@@ -38,9 +38,16 @@ def showErr(mes):
     tkmes.showinfo(title="Error", message=mes)
 
 
-def validate(register):
-    username = usernameEntry.get()
-    password = passwordEntry.get()
+def validate(register,username,password):
+    global isLogin
+    global isConnected
+    if (not isConnected):
+        showErr("Hãy kết nối đến server trước")
+        return
+    if (isLogin):
+        return
+    username = username.get()
+    password = password.get()
     if(username == "" or password == ""):
         showErr("Username và password không được để trống")
         return
@@ -59,49 +66,54 @@ def validate(register):
             showErr(result[2:])
         else:
             if(not register):
-                global isLogin
+                
                 isLogin = True
             showSuccess(result[2:])
 
+def createNewWindow(newWindow, name):
+    newWindow.minsize(340, 250)
+    newWindow.title(name)
 
-def threadConnectLogin():
+def loginConsole():
+    newWindow = Tk()
+    createNewWindow(newWindow, "Login")
     global isConnected
-    if(not isConnected):
-        showErr("Hãy kết nối đến server trước")
-        return
-    global isLogin
-    if(isLogin):
-        return
-    tConnect = thread.Thread(target=validate, args=(False,))
-    tConnect.start()
-
-
-def threadConnectRegister():
-    global isConnected
-    if (not isConnected):
-        showErr("Hãy kết nối đến server trước")
-        return
-    tConnect = thread.Thread(target=validate, args=(True,))
-    tConnect.start()
-
-
-def threadUILogin():
-    loginButton = Button(tkWindow, text="Login", command=threadConnectLogin)
+    def onClosingLoginConsole():
+        global isConnected
+        if (isConnected):
+            clientSocket.sendall(bytes("quit", 'utf8'))
+        clientSocket.close()
+        newWindow.destroy()
+        tkWindow.deiconify()
+        isConnected = False
+    # username label and text entry box
+    usernameLabel = Label(newWindow, text="User Name")
+    usernameLabel.place(relx=0.11, rely=0.46)
+    
+    usernameEntry = Entry(newWindow)
+    usernameEntry.place(relx=0.35, rely=0.46)
+    
+    # password label and password entry box
+    passwordLabel = Label(newWindow, text="Password")
+    passwordLabel.place(relx=0.11, rely=0.6)
+    
+    passwordEntry = Entry(newWindow, show="*")
+    passwordEntry.place(relx=0.35, rely=0.6)
+    
+    loginButton = Button(newWindow, text="Login", command=lambda: validate(False,usernameEntry,passwordEntry))
     loginButton.place(relx=0.35, rely=0.75)
-
-
-def threadUIRegis():
-    RegisButton = Button(tkWindow, text="Register",
-                         command=threadConnectRegister)
+    
+    RegisButton = Button(newWindow, text="Register",
+                         command=lambda: validate(True,usernameEntry,passwordEntry))
     RegisButton.place(relx=0.55, rely=0.75)
-
+    tkWindow.withdraw()
+    newWindow.protocol("WM_DELETE_WINDOW", onClosingLoginConsole)
+    newWindow.mainloop()
 
 def onClosing():
     global isConnected
-    if (isConnected):
-        clientSocket.sendall(bytes("quit", 'utf8'))
-    clientSocket.close()
     tkWindow.destroy()
+        
 
 
 def submitIP():
@@ -112,18 +124,24 @@ def submitIP():
         clientSocket.connect(serverAddress)
         data = clientSocket.recv(1024).decode("utf8")
         if data == "-connected-":
-            tkmes.showinfo(title="Success",
-                           message="Kết nối thành công")
+            tkmes.showinfo(title="Success",message="Kết nối thành công")
             global isConnected
             isConnected = True
+            print("pass ne con")
     except:
         tkmes.showerror(title="Error", message="Kết nối thất bại")
+    
+    if (not isConnected):
+        return
+    loginConsole()
 
 
 def threadSubmit():
     global isConnected
     if (isConnected):
         return
+    #tkWindow1.attributes('-alpha',0)
+    #tkWindow.mainloop()
     tConnect = thread.Thread(target=submitIP)
     tConnect.start()
 
@@ -133,27 +151,13 @@ def threadUISubmit():
     ipBtn.grid(row=0, column=2, sticky=W+S +
                N+E, pady=20, padx=(0, 10))
 
-
 tkWindow = Tk()
-tkWindow.title("Chatter")
+tkWindow.title("Connect")
 
 tkWindow.geometry('350x250')
 tkWindow.minsize(350, 250)
-tkWindow.title('Log in')
+#tkWindow.title('Log in')
 
-# username label and text entry box
-usernameLabel = Label(tkWindow, text="User Name")
-usernameLabel.place(relx=0.11, rely=0.46)
-
-usernameEntry = Entry(tkWindow)
-usernameEntry.place(relx=0.35, rely=0.46)
-
-# password label and password entry box
-passwordLabel = Label(tkWindow, text="Password")
-passwordLabel.place(relx=0.11, rely=0.6)
-
-passwordEntry = Entry(tkWindow, show="*")
-passwordEntry.place(relx=0.35, rely=0.6)
 
 # login button
 labelIP = Label(tkWindow, text="Nhập IP:")
@@ -167,12 +171,6 @@ entryIP.grid(row=0, column=1, pady=20, sticky=W +
 entryIP.insert(END, '127.0.0.1')
 
 tkWindow.protocol("WM_DELETE_WINDOW", onClosing)
-
-loginThread = thread.Thread(target=threadUILogin)
-loginThread.start()
-
-regisThread = thread.Thread(target=threadUIRegis)
-regisThread.start()
 
 submitThread = thread.Thread(target=threadUISubmit)
 submitThread.start()
