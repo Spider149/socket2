@@ -5,6 +5,7 @@ from functools import partial
 import tkinter.messagebox as tkmes
 import tkinter.ttk as ttk
 import tkinter.font as font
+import re
 
 isConnected = False
 isLogin = False
@@ -75,43 +76,32 @@ def createNewWindow(newWindow, name):
     newWindow.title(name)
 
 def loginConsole():
-    newWindow = Tk()
-    createNewWindow(newWindow, "Login")
-    global isConnected
-    def onClosingLoginConsole():
-        global isConnected
-        if (isConnected):
-            clientSocket.sendall(bytes("quit", 'utf8'))
-        clientSocket.close()
-        newWindow.destroy()
-        tkWindow.deiconify()
-        isConnected = False
     # username label and text entry box
-    usernameLabel = Label(newWindow, text="User Name")
+    usernameLabel = Label(tkWindow, text="User Name")
     usernameLabel.place(relx=0.11, rely=0.46)
     
-    usernameEntry = Entry(newWindow)
+    usernameEntry = Entry(tkWindow)
     usernameEntry.place(relx=0.35, rely=0.46)
     
     # password label and password entry box
-    passwordLabel = Label(newWindow, text="Password")
+    passwordLabel = Label(tkWindow, text="Password")
     passwordLabel.place(relx=0.11, rely=0.6)
     
-    passwordEntry = Entry(newWindow, show="*")
+    passwordEntry = Entry(tkWindow, show="*")
     passwordEntry.place(relx=0.35, rely=0.6)
     
-    loginButton = Button(newWindow, text="Login", command=lambda: validate(False,usernameEntry,passwordEntry))
+    loginButton = Button(tkWindow, text="Login", command=lambda: validate(False,usernameEntry,passwordEntry))
     loginButton.place(relx=0.35, rely=0.75)
     
-    RegisButton = Button(newWindow, text="Register",
+    RegisButton = Button(tkWindow, text="Register",
                          command=lambda: validate(True,usernameEntry,passwordEntry))
     RegisButton.place(relx=0.55, rely=0.75)
-    tkWindow.withdraw()
-    newWindow.protocol("WM_DELETE_WINDOW", onClosingLoginConsole)
-    newWindow.mainloop()
 
 def onClosing():
     global isConnected
+    if (isConnected):
+        clientSocket.sendall(bytes('quit', 'utf8'))
+    clientSocket.close()
     tkWindow.destroy()
         
 

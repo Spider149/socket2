@@ -122,12 +122,15 @@ def loadData():
             loginStatusList[x] = False
         f.close()
 
-
+def disConnect():
+    for client in clients:
+        client.sendall(bytes("disconnect","utf8"))
 root = tk.Tk()
 
 print("Chờ kết nối từ các client...")
 tUI = thread.Thread(target=threadUI)
 tUI.start()
+
 loadData()
 root.protocol("WM_DELETE_WINDOW", onClosing)
 root.mainloop()
