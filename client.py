@@ -104,7 +104,63 @@ def onClosing():
     clientSocket.close()
     tkWindow.destroy()
         
+def clientWindow():
+    isSee = False
+    def see():
+        if (isSee):
+            return
+        clientSocket.sendall(bytes("see_match","utf8"))
+        info_match = eval(clientSocket.recv(BUFSIZ*BUFSIZ))
+        i = 0
+        for event in infor_match.keys():
+            i+=1
+            tempMatch = info_match[event]
+            tree.insert("", 'end', text="L"+str(i),
+                        values=(event, tempMatch[0], 
+                                tempMatch[1],tempMatch[2],tempMatch[3]))
+            
+    def detail():
+        #pid parameter
+        return
+    
+    newWindow = Toplevel(tkWindow)
+    createNewWindow(newWindow, "Client")
+    newWindow.minsize(340, 360)
+    
+    seeBtn = tk.Button(newWindow, height=3, width=10,
+                           text="Xem", command=see)
+    seeBtn.grid(row=0, column=0, sticky=tk.W+tk.N +
+                tk.S+tk.E, pady=20, padx=50)
+    detailBtn = tk.Button(newWindow, height=3, width=10,
+                       text="Chi tiết", command=detail)
+    detailBtn.grid(row=0, column=1, sticky=tk.W+tk.N +
+                tk.S+tk.E, pady=20, padx=(0, 20))
+    tree = ttk.Treeview(newWindow, selectmode='browse')
+    tree.grid(row=1, column=0, columnspan=6, sticky=tk.W+tk.N +
+              tk.S+tk.E, padx=(20, 0))
 
+    vsb = ttk.Scrollbar(newWindow, orient="vertical", command=tree.yview)
+    vsb.grid(row=1, column=6, sticky=tk.W+tk.N +
+             tk.S, padx=(0, 20))
+    tree.configure(yscrollcommand=vsb.set)
+    tree["columns"] = ("1", "2", "3","4","5")
+    tree['show'] = 'headings'
+    tree.column("1", width=50, anchor='c')
+    tree.column("2", width=50, anchor='c')
+    tree.column("3", width=250, anchor='c')
+    tree.column("4", width=100, anchor='c')
+    tree.column("5", width=250, anchor='c')
+    tree.heading("1", text="ID")
+    tree.heading("2", text="State")
+    tree.heading("3", text="Team1")
+    tree.heading("4", text="Score")
+    tree.heading("5", text="Team2")
+    newWindow.grab_set()
+    newWindow.mainloop()
+    
+
+def adminWindow():
+    return
 
 def submitIP():
     host = entryIP.get()
@@ -146,6 +202,7 @@ tkWindow.title("Connect")
 
 tkWindow.geometry('350x250')
 tkWindow.minsize(350, 250)
+tkWindow.config(bg="#CECCBE")
 #tkWindow.title('Log in')
 
 
