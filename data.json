@@ -1,7 +1,7 @@
 {
    "100":{
       "start":"2021-05-21 08:00:00",
-      "team_1":{
+      "team1":{
          "name":"Tranmere Rover",
          "scorer":[
             ["ABC","15"]
@@ -9,7 +9,7 @@
          "red_card":[],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Morecambe",
          "scorer":[
             ["ABD","25"],
@@ -24,7 +24,7 @@
    },
    "101":{
       "start":"2021-05-21 08:30:00",      
-      "team_1":{
+      "team1":{
          "name":"FC Emmen",
          "scorer":[
             ["ABE","14"]
@@ -34,7 +34,7 @@
             ["EBA","15"]
          ]
       },
-      "team_2":{
+      "team2":{
          "name":"NAC Breda",
          "scorer":[
             ["BEA","20"]
@@ -45,7 +45,7 @@
    },
    "102":{
       "start":"2021-05-21 09:00:00",
-      "team_1":{
+      "team1":{
          "name":"Anderlecht",
          "scorer":[
             ["A","15"],
@@ -55,7 +55,7 @@
          "red_card":[],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Clun Brugge",
          "scorer":[
             ["C","40"],
@@ -68,7 +68,7 @@
    },
    "103":{
       "start":"2021-05-21 09:30:00",
-      "team_1":{
+      "team1":{
          "name":"Monza",
          "scorer":[
             ["A","20"],
@@ -77,7 +77,7 @@
          "red_card":[],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Cittadella",
          "scorer":[
          ],
@@ -89,14 +89,14 @@
    },
    "104":{
       "start":"2021-05-21 10:00:00",
-      "team_1":{
+      "team1":{
          "name":"Malara",
          "scorer":[
          ],
          "red_card":[],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Girona",
          "scorer":[
             ["E","42"]
@@ -107,7 +107,7 @@
    },
    "105":{
       "start":"2021-05-21 10:30:00",
-      "team_1":{
+      "team1":{
          "name":"Razo Vallecano",
          "scorer":[
             ["A","15"],
@@ -120,7 +120,7 @@
          ],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Real Ovedio",
          "scorer":[
             ["X","68"]
@@ -133,7 +133,7 @@
    }, 
    "106":{
       "start":"2021-05-21 11:00:00",
-      "team_1":{
+      "team1":{
          "name":"Sporting Gijon",
          "scorer":[
             ["E","42"]
@@ -141,7 +141,7 @@
          "red_card":[],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Las Palmas",
          "scorer":[
          ],
@@ -153,7 +153,7 @@
    },
    "107":{
       "start":"2021-05-21 12:30:00",
-      "team_1":{
+      "team1":{
          "name":"Real Gazaroga",
          "scorer":[
             ["A","10"],
@@ -164,7 +164,7 @@
          ],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Castellon",
          "scorer":[
          ],
@@ -176,7 +176,7 @@
    },
    "108":{
       "start":"2021-05-21 14:00:00",
-      "team_1":{
+      "team1":{
          "name":"Estoril",
          "scorer":[
             ["A","30"]
@@ -186,7 +186,7 @@
             ["A","35"]
          ]
       },
-      "team_2":{
+      "team2":{
          "name":"Mafra",
          "scorer":[
          ],
@@ -196,7 +196,7 @@
    },
    "109":{
       "start":"2021-05-21 15:00:00",
-      "team_1":{
+      "team1":{
          "name":"Dundee FC",
          "scorer":[
             ["A","20"],
@@ -207,7 +207,7 @@
             ["D","25"]
          ]
       },
-      "team_2":{
+      "team2":{
          "name":"Kilmarnock",
          "scorer":[
             ["E","30"]
@@ -218,7 +218,7 @@
    },
    "110":{
       "start":"2021-05-21 16:00:00",
-      "team_1":{
+      "team1":{
          "name":"Dumbarton",
          "scorer":[
          ],
@@ -227,7 +227,7 @@
          ],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Edinburg City",
          "scorer":[
             ["X","68"]
@@ -240,7 +240,7 @@
    },
    "111":{
       "start":"2021-05-21 17:00:00",
-      "team_1":{
+      "team1":{
          "name":"AGF",
          "scorer":[
             ["A","40"]
@@ -248,7 +248,7 @@
          "red_card":[],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Broendby IF",
          "scorer":[
             ["Y","65"],
@@ -262,7 +262,7 @@
    },
    "112":{
       "start":"2021-05-21 18:00:00",
-      "team_1":{
+      "team1":{
          "name":"Banga",
          "scorer":[
             ["A","40"]
@@ -270,7 +270,7 @@
          "red_card":[],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Vilnius",
          "scorer":[
             ["B","30"],
@@ -285,7 +285,7 @@
    },
    "113":{
       "start":"2021-05-21 20:00:00",
-      "team_1":{
+      "team1":{
          "name":"Rosen Borg",
          "scorer":[
             ["A","30"],
@@ -299,7 +299,7 @@
             ["E","90"]
          ]
       },
-      "team_2":{
+      "team2":{
          "name":"Brann",
          "scorer":[
             ["C","20"],
@@ -313,7 +313,7 @@
    },
    "114":{
       "start":"2021-05-21 20:30:00",
-      "team_1":{
+      "team1":{
          "name":"Ceara",
          "scorer":[
             ["A","33"],
@@ -322,7 +322,7 @@
          "red_card":[],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Bolivar",
          "scorer":[
          ],
@@ -332,14 +332,14 @@
    },
    "115":{
       "start":"2021-05-21 22:00:00",
-      "team_1":{
+      "team1":{
          "name":"Laci",
          "scorer":[
          ],
          "red_card":[],
          "yellow_card":[]
       },
-      "team_2":{
+      "team2":{
          "name":"Teuta Durres",
          "scorer":[
          ],

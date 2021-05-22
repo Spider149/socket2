@@ -6,9 +6,11 @@ import tkinter.messagebox as tkmes
 import tkinter.ttk as ttk
 import tkinter.font as font
 import re
+import pickle
 
 isConnected = False
 isLogin = False
+isSee = False
 
 clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -17,19 +19,6 @@ HOST = '127.0.0.1'
 PORT = 33000
 BUFSIZ = 1024
 ADDR = (HOST, PORT)
-
-
-def receive():
-    while True:
-        try:
-            msg = clientSocket.recv(BUFSIZ).decode("utf8")
-            #msg_list.insert(tkinter.END, msg)
-            print(msg)
-        except OSError:  # Possibly client has left the chat.
-            break
-        except:
-            break
-
 
 def showSuccess(mes):
     tkmes.showinfo(title="Success", message=mes)
@@ -67,9 +56,10 @@ def validate(register,username,password):
             showErr(result[2:])
         else:
             if(not register):
-                
                 isLogin = True
             showSuccess(result[2:])
+            if (isLogin):
+                clientWindow()
 
 def createNewWindow(newWindow, name):
     newWindow.minsize(340, 250)
@@ -103,16 +93,23 @@ def onClosing():
         clientSocket.sendall(bytes('quit', 'utf8'))
     clientSocket.close()
     tkWindow.destroy()
+    
+def onClosing2(parent, current):
+    parent.grab_set()
+    current.destroy()
         
 def clientWindow():
-    isSee = False
+    global isLogin
+    global isConnected
     def see():
-        if (isSee):
-            return
+        global isSee
+        isSee = True
+        tree.delete(*tree.get_children())
         clientSocket.sendall(bytes("see_match","utf8"))
-        info_match = eval(clientSocket.recv(BUFSIZ*BUFSIZ))
+        match = clientSocket.recv(BUFSIZ*BUFSIZ)
+        info_match = pickle.loads(match)
         i = 0
-        for event in infor_match.keys():
+        for event in info_match.keys():
             i+=1
             tempMatch = info_match[event]
             tree.insert("", 'end', text="L"+str(i),
@@ -121,27 +118,63 @@ def clientWindow():
             
     def detail():
         #pid parameter
-        return
-    
+        global isSee
+        if (not isSee):
+            return
+        detailsWindow = Toplevel(newWindow)
+        createNewWindow(detailsWindow, "Details")
+        detailsWindow.minsize(30,50)
+        
+        def sendID():
+            clientSocket.sendall(bytes("detail_match", "utf8"))
+            IDdetails = ID.get("1.0",END)[:-1]
+            clientSocket.sendall(bytes(IDdetails, "utf8"))
+            complete = clientSocket.recv(BUFSIZ).decode("utf8")
+            if (complete == "get_success"):
+                details = pickle.loads(clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
+                print(details)
+            else:
+                showErr("ID không tồn tại")
+        ID = Text(detailsWindow, height=1, width=50)
+        ID.grid(row=0, column=0, pady=10,
+                    padx=(20, 20), sticky=W+S +
+                    N+E)
+        ID.insert(END, 'Nhập ID')
+        sendBtn = Button(
+            detailsWindow, height=1, width=12, text="Gửi", command=sendID)
+        sendBtn.grid(row=0, column=1, sticky=W+N +
+                           S+E, pady=10, padx=(20, 20))
+        detailsWindow.protocol("WM_DELETE_WINDOW",
+                            lambda: onClosing2(newWindow, detailsWindow))
+        detailsWindow.grab_set()
+        detailsWindow.mainloop()
+    def onclosingClientWindow():
+        newWindow.destroy()
+        tkWindow.deiconify()
+        clientSocket.sendall(bytes("quit","utf8"))
+        isLogin = False
+        isConnected = False
+        
     newWindow = Toplevel(tkWindow)
+    tkWindow.withdraw()
     createNewWindow(newWindow, "Client")
     newWindow.minsize(340, 360)
     
-    seeBtn = tk.Button(newWindow, height=3, width=10,
+    seeBtn = Button(newWindow, height=3, width=10,
                            text="Xem", command=see)
-    seeBtn.grid(row=0, column=0, sticky=tk.W+tk.N +
-                tk.S+tk.E, pady=20, padx=50)
-    detailBtn = tk.Button(newWindow, height=3, width=10,
+    seeBtn.grid(row=0, column=0, sticky=W+N +
+                S+E, pady=20, padx=50)
+    detailBtn = Button(newWindow, height=3, width=10,
                        text="Chi tiết", command=detail)
-    detailBtn.grid(row=0, column=1, sticky=tk.W+tk.N +
-                tk.S+tk.E, pady=20, padx=(0, 20))
+    detailBtn.grid(row=0, column=1, sticky=W+N +
+                S+E, pady=20, padx=(0, 20))
     tree = ttk.Treeview(newWindow, selectmode='browse')
-    tree.grid(row=1, column=0, columnspan=6, sticky=tk.W+tk.N +
-              tk.S+tk.E, padx=(20, 0))
+    tree.grid(row=1, column=0, columnspan=6, sticky=W+N +
+              S+E, padx=(20, 0))
 
     vsb = ttk.Scrollbar(newWindow, orient="vertical", command=tree.yview)
-    vsb.grid(row=1, column=6, sticky=tk.W+tk.N +
-             tk.S, padx=(0, 20))
+    vsb.grid(row=1, column=6, sticky=W+N +
+             S, padx=(0, 20))
     tree.configure(yscrollcommand=vsb.set)
     tree["columns"] = ("1", "2", "3","4","5")
     tree['show'] = 'headings'
@@ -155,6 +188,7 @@ def clientWindow():
     tree.heading("3", text="Team1")
     tree.heading("4", text="Score")
     tree.heading("5", text="Team2")
+    newWindow.protocol("WM_DELETE_WINDOW", onclosingClientWindow)
     newWindow.grab_set()
     newWindow.mainloop()
     

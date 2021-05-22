@@ -10,7 +10,7 @@ addresses = {}  # danh sách client và địa chỉ
 account = {} # danh sách tài khoản
 data = {} #danh sách thông tin trận đấu
 loginStatusList = {}  # những client đã login
-time_match = {} # Ghi thời gian diễn ra trận đấu
+timeMatch = {} # Ghi thời gian diễn ra trận đấu
 
 HOST = '127.0.0.1'
 PORT = 33000
@@ -39,31 +39,36 @@ def get_delta_time(start):
     now = datetime.datetime.now()
     if (str(now) < start):
         return -2
-    if (str(datetime.datetime.now()+datetime.delta_time(minutes=105)) > start):
-        return -1
-    start_time_obj = datetime.strptime(start[2:],"%y-%m-%d %H:%M:%S")
+    start_time_obj = datetime.datetime.strptime(start[2:],"%y-%m-%d %H:%M:%S")
     during = now - start_time_obj
-    during = int(str(during)[0]) + int(str(during)[2:4])
-    return during
+    if (str(type(during))==str(type(datetime.datetime.now()))):
+        if (during.day > 0):
+            return 1000
+        res = int(during.hours)*60 + int(during.minutes)
+        return res
+    else:
+        return int(during.total_seconds()/60.0)
+    
+    
 
 def preProcess(pid):
     global data
-    global time_match
+    global timeMatch
     match = data[pid]
     start = match["start"]
     delta_time = get_delta_time(start)
-    if (delta_time==-2):
-        time_temp =  datetime.datetime.strptime(data[pid]["time"][2:],"%y-%m-%d %H:%M:%S")
-        time_match[pid] = "{0:02d}:{1:02d}".format(time_temp.hour,time_temp.minute)
-    elif (delta_time==-1):
-        time_match[pid] = "FT"
+    if (delta_time < 0):
+        time_temp =  datetime.datetime.strptime(data[pid]["start"][2:],"%y-%m-%d %H:%M:%S")
+        timeMatch[pid] = "{0:02d}:{1:02d}".format(time_temp.hour,time_temp.minute)
     else:
         if (delta_time < 45):
-            time_match[pid] = str(delta_time) + "\'"
+            timeMatch[pid] = str(delta_time) + "\'"
         elif (delta_time < 60):
-            time_match[pid] = "FT"
+            timeMatch[pid] = "HT"
         elif (delta_time < 105):
-            time_match[pid] = str(delta_time - 15) + "\'"
+            timeMatch[pid] = str(delta_time - 15) + "\'"
+        else:
+            timeMatch[pid] = "FT"
 
 def detailMatch(pid,state):
     global data
@@ -158,16 +163,70 @@ def handleClient(client):  # Takes client socket as argument.
             Line = {}
             for ID in data.keys():
                 preProcess(ID)
-                detailMatch(ID,time_match[ID])
-                if (":" in time_match[ID]):
-                    Line[ID] = [time_match[ID],data[ID]["team1"]["name"],
+                detailMatch(ID,timeMatch[ID])
+                if (":" in timeMatch[ID]):
+                    Line[ID] = [timeMatch[ID],data[ID]["team1"]["name"],
                                 "? : ?",data[ID]["team2"]["name"]]
+                    print(Line[ID])
                 else:
-                    Line[ID] = [time_match[ID],data[ID]["team1"]["name"],
+                    Line[ID] = [timeMatch[ID],data[ID]["team1"]["name"],
                                 str(len(data[ID]["team1"]["scorer"]))+":"+
                                 str(len(data[ID]["team2"]["scorer"])),
                                 data[ID]["team2"]["name"]]
             client.sendall(pickle.dumps(Line))
+        
+        elif message == "detail_match":
+            ID = client.recv(BUFSIZ).decode("utf8")
+            if (ID not in data.keys()):
+                client.sendall(bytes("get_fail"))
+                continue
+            client.sendall(bytes("get_success","utf8"))
+            res = None
+            preProcess(ID)
+            detailMatch(ID,timeMatch[ID])
+            if (":" in timeMatch[ID]):
+                    res = [timeMatch[ID],data[ID]["team1"]["name"],
+                                "? : ?",data[ID]["team2"]["name"]]
+            else:
+                res = [timeMatch[ID],data[ID]["team1"]["name"],
+                            str(len(data[ID]["team1"]["scorer"]))+":"+
+                            str(len(data[ID]["team2"]["scorer"])),
+                            data[ID]["team2"]["name"]]
+            
+            details = data[ID]
+            list_event = {}
+            events = []
+            for Eve in details["team1"]["scorer"]:
+                Eve.append("score")
+                Eve.append("1")
+                events.append(Eve)
+            for Eve in details["team1"]["red_card"]:
+                Eve.append("red")
+                Eve.append("1")
+                events.append(Eve)
+            for Eve in details["team1"]["yellow_card"]:
+                Eve.append("yellow")
+                Eve.append("1")
+                events.append(Eve)
+            for Eve in details["team2"]["scorer"]:
+                Eve.append("score")
+                Eve.append("2")
+                events.append(Eve)
+            for Eve in details["team2"]["red_card"]:
+                Eve.append("red")
+                Eve.append("2")
+                events.append(Eve)
+            for Eve in details["team2"]["yellow_card"]:
+                Eve.append("yellow")
+                Eve.append("2")
+                events.append(Eve)
+            for i in range(len(events) - 1):
+                for j in range(i+1,len(events)):
+                    if (int(events[i][1]) > int(events[j][1])):
+                        events[i], events[j] = events[j], events[i]
+            list_event["send"] = [res,events]
+            client.sendall(pickle.dumps(list_event))
+            
         elif message == "quit":
             client.close()
             del clients[client]
@@ -207,7 +266,7 @@ def onClosing():
 def loadData():
     global account
     global data
-    global time_match
+    global timeMatch
     with open("account.json") as f:
         accountLoad = json.load(f)
         for x in accountLoad:
@@ -218,8 +277,8 @@ def loadData():
         f.close()
     with open("data.json") as f:
         data = json.load(f)
-        for ID in data:
-            time_match[ID] = None
+        for ID in data.keys():
+            timeMatch[ID] = None
 
 def disConnect():
     for client in clients:
