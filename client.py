@@ -65,25 +65,31 @@ def createNewWindow(newWindow, name):
 def loginConsole():
     # username label and text entry box
     usernameLabel = Label(tkWindow, text="User Name")
-    usernameLabel.place(relx=0.11, rely=0.46)
+    usernameLabel.grid(row=1, column=0, pady=(0, 20), sticky=W +
+                       S+N+E, padx=(20, 20))
 
     usernameEntry = Entry(tkWindow)
-    usernameEntry.place(relx=0.35, rely=0.46)
+    usernameEntry.grid(row=1, column=1, pady=(0, 20), sticky=W +
+                       S+N+E, padx=(0, 20))
 
     # password label and password entry box
     passwordLabel = Label(tkWindow, text="Password")
-    passwordLabel.place(relx=0.11, rely=0.6)
+    passwordLabel.grid(row=2, column=0, pady=(0, 20), sticky=W +
+                       S+N+E, padx=(20, 20))
 
     passwordEntry = Entry(tkWindow, show="*")
-    passwordEntry.place(relx=0.35, rely=0.6)
+    passwordEntry.grid(row=2, column=1, pady=(0, 20), sticky=W +
+                       S+N+E, padx=(0, 20))
 
     loginButton = Button(tkWindow, text="Login", command=lambda: validate(
         False, usernameEntry, passwordEntry))
-    loginButton.place(relx=0.35, rely=0.75)
+    loginButton.grid(row=3, column=0, pady=(0, 20), sticky=W +
+                     S+N+E, padx=(20, 20))
 
     RegisButton = Button(tkWindow, text="Register",
                          command=lambda: validate(True, usernameEntry, passwordEntry))
-    RegisButton.place(relx=0.55, rely=0.75)
+    RegisButton.grid(row=3, column=1, pady=(0, 20), sticky=W +
+                     N+S, padx=(0, 20), ipadx=10)
 
 
 def onClosing():
@@ -110,13 +116,13 @@ def clientWindow():
         global isSee
         isSee = True
         tree.delete(*tree.get_children())
-        clientSocket.sendall(bytes("-see_match-", "utf8"))
+        clientSocket.sendall(bytes("-seematch-", "utf8"))
         match = clientSocket.recv(BUFSIZ*BUFSIZ)
-        info_match = pickle.loads(match)
+        infoMatch = pickle.loads(match)
         i = 0
-        for event in info_match.keys():
+        for event in infoMatch.keys():
             i += 1
-            tempMatch = info_match[event]
+            tempMatch = infoMatch[event]
             tree.insert("", 'end', text="L"+str(i),
                         values=(event, tempMatch[0],
                                 tempMatch[1], tempMatch[2], tempMatch[3]))
@@ -131,11 +137,11 @@ def clientWindow():
         detailsWindow.minsize(30, 50)
 
         def sendID():
-            clientSocket.sendall(bytes("-detail_match-", "utf8"))
+            clientSocket.sendall(bytes("-detailmatch-", "utf8"))
             IDdetails = ID.get("1.0", END)[:-1]
             clientSocket.sendall(bytes(IDdetails, "utf8"))
             complete = clientSocket.recv(BUFSIZ).decode("utf8")
-            if (complete == "get_success"):
+            if (complete == "getsuccess"):
                 details = pickle.loads(
                     clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
                 print(details)
@@ -156,14 +162,15 @@ def clientWindow():
         detailsWindow.mainloop()
 
     def onclosingClientWindow():
+        if tkmes.askokcancel("Log out", "Bạn có muốn log out khỏi tài khoản?"):
+            logout()
+
+    def logout():
         clientSocket.sendall(bytes("-logout-", "utf8"))
         global isLogin
         isLogin = False
         newWindow.destroy()
         tkWindow.deiconify()
-
-    def logout():
-        onclosingClientWindow()
 
     newWindow = Toplevel(tkWindow)
     tkWindow.withdraw()
@@ -173,7 +180,7 @@ def clientWindow():
     seeBtn = Button(newWindow, height=3, width=10,
                     text="Xem", command=see)
     seeBtn.grid(row=0, column=0, sticky=W+N +
-                S+E, pady=20, padx=50)
+                S+E, pady=20, padx=(20, 50))
     detailBtn = Button(newWindow, height=3, width=10,
                        text="Chi tiết", command=detail)
     detailBtn.grid(row=0, column=1, sticky=W+N +
@@ -222,10 +229,9 @@ def submitIP():
             tkmes.showinfo(title="Success", message="Kết nối thành công")
             global isConnected
             isConnected = True
+            loginConsole()
     except:
         tkmes.showerror(title="Error", message="Kết nối thất bại")
-
-    loginConsole()
 
 
 def threadSubmit():
@@ -256,11 +262,11 @@ tkWindow.config(bg="#CECCBE")
 # login button
 labelIP = Label(tkWindow, text="Nhập IP:")
 labelIP.grid(row=0, column=0, pady=20, sticky=W +
-             S+N+E, padx=(20, 10))
+             S+N+E, padx=(20, 20))
 
 entryIP = Entry(tkWindow)
 entryIP.grid(row=0, column=1, pady=20, sticky=W +
-             S+N+E, padx=(0, 10))
+             S+N+E, padx=(0, 20))
 
 entryIP.insert(END, '127.0.0.1')
 

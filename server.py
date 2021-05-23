@@ -1,6 +1,7 @@
+from client import showErr
 import socket
 import threading as thread
-import tkinter as tk
+from tkinter import *
 import json
 import datetime
 import pickle
@@ -36,12 +37,12 @@ def acceptIncomingConnections():
         thread.Thread(target=handleClient, args=(client,)).start()
 
 
-def get_delta_time(start):
+def getDeltaTime(start):
     now = datetime.datetime.now()
     if (str(now) < start):
         return -2
-    start_time_obj = datetime.datetime.strptime(start[2:], "%y-%m-%d %H:%M:%S")
-    during = now - start_time_obj
+    startTimeObj = datetime.datetime.strptime(start[2:], "%y-%m-%d %H:%M:%S")
+    during = now - startTimeObj
     if (str(type(during)) == str(type(datetime.datetime.now()))):
         if (during.day > 0):
             return 1000
@@ -56,19 +57,19 @@ def preProcess(pid):
     global timeMatch
     match = data[pid]
     start = match["start"]
-    delta_time = get_delta_time(start)
-    if (delta_time < 0):
-        time_temp = datetime.datetime.strptime(
+    deltaTime = getDeltaTime(start)
+    if (deltaTime < 0):
+        timeTemp = datetime.datetime.strptime(
             data[pid]["start"][2:], "%y-%m-%d %H:%M:%S")
         timeMatch[pid] = "{0:02d}:{1:02d}".format(
-            time_temp.hour, time_temp.minute)
+            timeTemp.hour, timeTemp.minute)
     else:
-        if (delta_time < 45):
-            timeMatch[pid] = str(delta_time) + "\'"
-        elif (delta_time < 60):
+        if (deltaTime < 45):
+            timeMatch[pid] = str(deltaTime) + "\'"
+        elif (deltaTime < 60):
             timeMatch[pid] = "HT"
-        elif (delta_time < 105):
-            timeMatch[pid] = str(delta_time - 15) + "\'"
+        elif (deltaTime < 105):
+            timeMatch[pid] = str(deltaTime - 15) + "\'"
         else:
             timeMatch[pid] = "FT"
 
@@ -165,7 +166,7 @@ def handleClient(client):  # Takes client socket as argument.
                     json.dump(account, f)
                     f.close()
                 client.sendall(bytes("S-Đăng ký thành công", "utf8"))
-        elif message == "-see_match-":
+        elif message == "-seematch-":
             Line = {}
             for ID in data.keys():
                 preProcess(ID)
@@ -181,14 +182,14 @@ def handleClient(client):  # Takes client socket as argument.
                                 data[ID]["team2"]["name"]]
             client.sendall(pickle.dumps(Line))
 
-        elif message == "-detail_match-":
+        elif message == "-detailmatch-":
             ID = client.recv(BUFSIZ).decode("utf8")
             if (ID not in data.keys()):
                 print("a")
-                client.sendall(bytes("get_fail", "utf8"))
+                client.sendall(bytes("getfail", "utf8"))
                 continue
             print("B")
-            client.sendall(bytes("get_success", "utf8"))
+            client.sendall(bytes("getsuccess", "utf8"))
             res = None
             preProcess(ID)
             detailMatch(ID, timeMatch[ID])
@@ -202,7 +203,7 @@ def handleClient(client):  # Takes client socket as argument.
                        data[ID]["team2"]["name"]]
 
             details = data[ID]
-            list_event = {}
+            listEvent = {}
             events = []
             for Eve in details["team1"]["scorer"]:
                 Eve.append("score")
@@ -232,8 +233,8 @@ def handleClient(client):  # Takes client socket as argument.
                 for j in range(i+1, len(events)):
                     if (int(events[i][1]) > int(events[j][1])):
                         events[i], events[j] = events[j], events[i]
-            list_event["send"] = [res, events]
-            client.sendall(pickle.dumps(list_event))
+            listEvent["send"] = [res, events]
+            client.sendall(pickle.dumps(listEvent))
 
         elif message == "-quit-":
             client.close()
@@ -251,22 +252,33 @@ def broadcast(msg, prefix=""):  # prefix is for name identification.
         sock.sendall(bytes(prefix, "utf8") + msg)
 
 
-def threadConnect():
+def threadConnect(maxClientEntry):
     global isConnected
     if isConnected:
         return
-    isConnected = True
-    SERVER.listen(5)
-    tConnect = thread.Thread(target=acceptIncomingConnections, daemon=True)
-    tConnect.start()
+    maxClient = maxClientEntry.get()
+    if maxClient.isnumeric():
+        SERVER.listen(int(maxClient))
+        isConnected = True
+        tConnect = thread.Thread(target=acceptIncomingConnections, daemon=True)
+        tConnect.start()
+    else:
+        showErr("Vui lòng nhập số nguyên")
 
 
 def threadUI():
     root.title("Server")
-    root.minsize(200, 200)
-    openServerBtn = tk.Button(root, text="Mở server",
-                              command=threadConnect, width=10, height=5)
-    openServerBtn.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+    labelMaxClient = Label(
+        root, text="Nhập số lượng client có thể kết nối đồng thời:")
+    labelMaxClient.grid(row=0, column=0, pady=20, sticky=W +
+                        S+N+E, padx=(20, 20))
+    maxClient = Entry(root)
+    maxClient.grid(row=0, column=1, pady=20, sticky=W +
+                   S+N+E, padx=(0, 20))
+    openServerBtn = Button(root, text="Mở server",
+                           command=lambda: threadConnect(maxClient))
+    openServerBtn.grid(row=0, column=2, pady=20, sticky=W +
+                       S+N+E, padx=(0, 20))
 
 
 def onClosing():
@@ -281,8 +293,6 @@ def loadData():
     with open("account.json") as f:
         accountLoad = json.load(f)
         for x in accountLoad:
-            if x in account.keys():
-                continue
             account[x] = accountLoad[x]
             loginStatusList[x] = False
         f.close()
@@ -297,7 +307,7 @@ def disConnect():
         client.sendall(bytes("disconnect", "utf8"))
 
 
-root = tk.Tk()
+root = Tk()
 
 print("Chờ kết nối từ các client...")
 tUI = thread.Thread(target=threadUI)
