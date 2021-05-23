@@ -25,7 +25,7 @@ def showSuccess(mes):
 
 
 def showErr(mes):
-    tkmes.showinfo(title="Error", message=mes)
+    tkmes.showerror(title="Error", message=mes)
 
 
 def validate(register, username, password):
@@ -222,16 +222,21 @@ def submitIP():
     host = entryIP.get()
     port = 33000
     serverAddress = (host, port)
+    global clientSocket
     try:
         clientSocket.connect(serverAddress)
         data = clientSocket.recv(1024).decode("utf8")
         if data == "-connected-":
-            tkmes.showinfo(title="Success", message="Kết nối thành công")
+            showSuccess("Kết nối thành công")
             global isConnected
             isConnected = True
             loginConsole()
+        else:
+            showErr("Kết nối thất bại")
+            clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
     except:
-        tkmes.showerror(title="Error", message="Kết nối thất bại")
+        showErr("Kết nối thất bại")
 
 
 def threadSubmit():

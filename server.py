@@ -1,10 +1,10 @@
-from client import showErr
 import socket
 import threading as thread
 from tkinter import *
 import json
 import datetime
 import pickle
+import tkinter.messagebox as tkmes
 
 clients = {}  # danh sách client đã kết nối và trạng thái kết nối
 addresses = {}  # danh sách client và địa chỉ
@@ -21,20 +21,34 @@ SERVER = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 SERVER.bind(ADDR)
 
 isConnected = False
+maxNumberOfClient = 0
+
+
+def showSuccess(mes):
+    tkmes.showinfo(title="Success", message=mes)
+
+
+def showErr(mes):
+    tkmes.showerror(title="Error", message=mes)
 
 
 def acceptIncomingConnections():
     while True:
         try:
             client, clientAddress = SERVER.accept()
+            global maxNumberOfClient
+            if(len(clients) >= maxNumberOfClient):
+                client.sendall(bytes("-fail-", "utf8"))
+                client.close()
+                continue
             client.sendall(bytes("-connected-", "utf8"))
+            print("%s:%s has connected." % clientAddress)
+            clients[client] = True
+            addresses[client] = clientAddress
+            thread.Thread(target=handleClient, args=(client,)).start()
             # có kết nối tới thì gưi qua 1 tin nhắn
         except:
             break
-        print("%s:%s has connected." % clientAddress)
-        clients[client] = True
-        addresses[client] = clientAddress
-        thread.Thread(target=handleClient, args=(client,)).start()
 
 
 def getDeltaTime(start):
@@ -239,6 +253,8 @@ def handleClient(client):  # Takes client socket as argument.
         elif message == "-quit-":
             client.close()
             del clients[client]
+            print(len(clients))
+            print("%s:%s has disconnected." % addresses[client])
             del addresses[client]
             break
 
@@ -258,10 +274,13 @@ def threadConnect(maxClientEntry):
         return
     maxClient = maxClientEntry.get()
     if maxClient.isnumeric():
-        SERVER.listen(int(maxClient))
+        SERVER.listen(0)
+        global maxNumberOfClient
+        maxNumberOfClient = int(maxClient)
         isConnected = True
         tConnect = thread.Thread(target=acceptIncomingConnections, daemon=True)
         tConnect.start()
+        showSuccess("Mở server thành công")
     else:
         showErr("Vui lòng nhập số nguyên")
 
