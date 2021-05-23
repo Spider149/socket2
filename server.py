@@ -138,7 +138,6 @@ def handleClient(client):  # Takes client socket as argument.
     global account
     global data
     global loginStatusList
-    global data
     isLogin = False
     currentName = None
 

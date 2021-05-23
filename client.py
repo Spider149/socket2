@@ -135,6 +135,25 @@ def clientWindow():
         detailsWindow = Toplevel(newWindow)
         createNewWindow(detailsWindow, "Details")
         detailsWindow.minsize(30, 50)
+        tree = ttk.Treeview(detailsWindow, selectmode='browse')
+        tree.grid(row=1, column=0, columnspan=4, sticky=W+N +
+                  S+E, padx=(20, 0), pady=20)
+
+        vsb = ttk.Scrollbar(
+            detailsWindow, orient="vertical", command=tree.yview)
+        vsb.grid(row=1, column=4, sticky=W+N +
+                 S, padx=(0, 20), pady=(20))
+        tree.configure(yscrollcommand=vsb.set)
+        tree["columns"] = ("1", "2", "3", "4")
+        tree['show'] = 'headings'
+        tree.column("1", width=50, anchor='c')
+        tree.column("2", width=150, anchor='c')
+        tree.column("3", width=50, anchor='c')
+        tree.column("4", width=150, anchor='c')
+        tree.heading("1", text="Time")
+        tree.heading("2", text="Team1")
+        tree.heading("3", text="Score")
+        tree.heading("4", text="Team2")
 
         def sendID():
             clientSocket.sendall(bytes("-detailmatch-", "utf8"))
@@ -144,7 +163,51 @@ def clientWindow():
             if (complete == "getsuccess"):
                 details = pickle.loads(
                     clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
-                print(details)
+                tree.delete(*tree.get_children())
+                i = 2
+                t1Score = 0
+                t2Score = 0
+                tree.insert("", 'end', text="L"+str(0),
+                            values=(details[0][0], details[0][1], details[0][2], details[0][3]))
+                tree.insert("", 'end', text="L"+str(1))
+                HTadded = False
+                for event in details[1]:
+                    if(event[3] == '1'):
+                        if int(event[1]) > 45:
+                            if(not HTadded):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=("HT", "", str(t1Score)+":"+str(t2Score), ""))
+                                HTadded = True
+                                i += 1
+                        if(event[2] == "score"):
+                            t1Score += 1
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', event[0]+" ghi bàn", str(t1Score)+":"+str(t2Score), ""))
+                        if(event[2] == "yellow"):
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', event[0]+" bị thẻ vàng", "", ""))
+                        if(event[2] == "red"):
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', event[0]+" bị thẻ đỏ", "", ""))
+                    if(event[3] == '2'):
+                        if int(event[1]) > 45:
+                            if(not HTadded):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=("HT", "", str(t1Score)+":"+str(t2Score), ""))
+                                HTadded = True
+                                i += 1
+                        if(event[2] == "score"):
+                            t2Score += 1
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', "", str(t1Score)+":"+str(t2Score), event[0]+" ghi bàn"))
+                        if(event[2] == "yellow"):
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', "", "", event[0]+" bị thẻ vàng"))
+                        if(event[2] == "red"):
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', "", "", event[0]+" bị thẻ đỏ"))
+                    i += 1
+
             else:
                 showErr("ID không tồn tại")
         ID = Text(detailsWindow, height=1, width=50)
@@ -155,7 +218,7 @@ def clientWindow():
         sendBtn = Button(
             detailsWindow, height=1, width=12, text="Gửi", command=sendID)
         sendBtn.grid(row=0, column=1, sticky=W+N +
-                     S+E, pady=10, padx=(20, 20))
+                     S+E, pady=10, padx=(0, 20))
         detailsWindow.protocol("WM_DELETE_WINDOW",
                                lambda: onClosing2(newWindow, detailsWindow))
         detailsWindow.grab_set()
@@ -190,11 +253,11 @@ def clientWindow():
     logoutBtn.grid(row=0, column=2, sticky=W+N +
                    S+E, pady=20, padx=(0, 50))
     tree = ttk.Treeview(newWindow, selectmode='browse')
-    tree.grid(row=1, column=0, columnspan=6, sticky=W+N +
+    tree.grid(row=1, column=0, columnspan=5, sticky=W+N +
               S+E, padx=(20, 0))
 
     vsb = ttk.Scrollbar(newWindow, orient="vertical", command=tree.yview)
-    vsb.grid(row=1, column=6, sticky=W+N +
+    vsb.grid(row=1, column=5, sticky=W+N +
              S, padx=(0, 20))
     tree.configure(yscrollcommand=vsb.set)
     tree["columns"] = ("1", "2", "3", "4", "5")
@@ -258,8 +321,6 @@ def threadUISubmit():
 tkWindow = Tk()
 tkWindow.title("Connect")
 
-tkWindow.geometry('350x250')
-tkWindow.minsize(350, 250)
 tkWindow.config(bg="#CECCBE")
 #tkWindow.title('Log in')
 
