@@ -40,10 +40,17 @@ def validate(register, username, password):
         return
     else:
         if(register):
-            clientSocket.sendall(bytes('r'+username+' '+password, 'utf8'))
+            try:
+                clientSocket.sendall(bytes('r'+username+' '+password, 'utf8'))
+            except:
+                showErr("Lỗi kết nối đến server")
+                return
         else:
-            clientSocket.sendall(bytes('l'+username+' '+password, 'utf8'))
-
+            try:
+                clientSocket.sendall(bytes('l'+username+' '+password, 'utf8'))
+            except:
+                showErr("Lỗi kết nối đến server")
+                return
         result = clientSocket.recv(BUFSIZ).decode("utf8")
         if(result[0] == 'F'):
             showErr(result[2:])
@@ -116,7 +123,11 @@ def clientWindow():
         global isSee
         isSee = True
         tree.delete(*tree.get_children())
-        clientSocket.sendall(bytes("-seematch-", "utf8"))
+        try:
+            clientSocket.sendall(bytes("-seematch-", "utf8"))
+        except:
+            showErr("Lỗi kết nối đến server")
+            return
         match = clientSocket.recv(BUFSIZ*BUFSIZ)
         infoMatch = pickle.loads(match)
         i = 0
@@ -156,9 +167,14 @@ def clientWindow():
         tree.heading("4", text="Team2")
 
         def sendID():
-            clientSocket.sendall(bytes("-detailmatch-", "utf8"))
-            IDdetails = ID.get("1.0", END)[:-1]
-            clientSocket.sendall(bytes(IDdetails, "utf8"))
+            try:
+                clientSocket.sendall(bytes("-detailmatch-", "utf8"))
+
+                IDdetails = ID.get("1.0", END)[:-1]
+                clientSocket.sendall(bytes(IDdetails, "utf8"))
+            except:
+                showErr("Lỗi kết nối đến server")
+                return
             complete = clientSocket.recv(BUFSIZ).decode("utf8")
             if (complete == "getsuccess"):
                 details = pickle.loads(
@@ -229,7 +245,10 @@ def clientWindow():
             logout()
 
     def logout():
-        clientSocket.sendall(bytes("-logout-", "utf8"))
+        try:
+            clientSocket.sendall(bytes("-logout-", "utf8"))
+        except:
+            pass
         global isLogin
         isLogin = False
         newWindow.destroy()

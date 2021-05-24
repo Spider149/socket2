@@ -187,7 +187,6 @@ def handleClient(client):  # Takes client socket as argument.
                 if (":" in timeMatch[ID]):
                     Line[ID] = [timeMatch[ID], data[ID]["team1"]["name"],
                                 "? : ?", data[ID]["team2"]["name"]]
-                    print(Line[ID])
                 else:
                     Line[ID] = [timeMatch[ID], data[ID]["team1"]["name"],
                                 str(len(data[ID]["team1"]["scorer"]))+":" +
@@ -198,10 +197,8 @@ def handleClient(client):  # Takes client socket as argument.
         elif message == "-detailmatch-":
             ID = client.recv(BUFSIZ).decode("utf8")
             if (ID not in data.keys()):
-                print("a")
                 client.sendall(bytes("getfail", "utf8"))
                 continue
-            print("B")
             client.sendall(bytes("getsuccess", "utf8"))
             res = None
             preProcess(ID)
@@ -252,7 +249,6 @@ def handleClient(client):  # Takes client socket as argument.
         elif message == "-quit-":
             client.close()
             del clients[client]
-            print(len(clients))
             print("%s:%s has disconnected." % addresses[client])
             del addresses[client]
             break
@@ -327,7 +323,6 @@ def disConnect():
 
 root = Tk()
 
-print("Chờ kết nối từ các client...")
 tUI = thread.Thread(target=threadUI)
 tUI.start()
 
