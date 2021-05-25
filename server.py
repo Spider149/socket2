@@ -66,7 +66,7 @@ def getDeltaTime(start):
         return int(during.total_seconds()/60.0)
 
 
-def preProcess(pid):
+def updateState(pid):
     global data
     global timeMatch
     match = data[pid]
@@ -86,52 +86,6 @@ def preProcess(pid):
             timeMatch[pid] = str(deltaTime - 15) + "\'"
         else:
             timeMatch[pid] = "FT"
-
-
-def detailMatch(pid, state):
-    global data
-    loadMatch = data[pid]
-    if (state == "FT"):
-        return
-    elif (":" in state):
-        loadMatch["team1"]["scorer"] = []
-        loadMatch["team1"]["red_card"] = []
-        loadMatch["team1"]["yellow_card"] = []
-        loadMatch["team2"]["scorer"] = []
-        loadMatch["team2"]["red_card"] = []
-        loadMatch["team2"]["yellow_card"] = []
-    else:
-        tempEvent = []
-        for event in loadMatch["team1"]["scorer"]:
-            if (int(event[1]) < int(state)):
-                tempEvent.append(event)
-        loadMatch["team1"]["scorer"] = tempEvent
-        tempEvent = []
-        for event in loadMatch["team1"]["red_card"]:
-            if (int(event[1]) < int(state)):
-                tempEvent.append(event)
-        loadMatch["team1"]["red_card"] = tempEvent
-        tempEvent = []
-        for event in loadMatch["team1"]["yellow_card"]:
-            if (int(event[1]) < int(state)):
-                tempEvent.append(event)
-        loadMatch["team1"]["yellow_card"] = tempEvent
-        tempEvent = []
-        for event in loadMatch["team1"]["scorer"]:
-            if (int(event[1]) < int(state)):
-                tempEvent.append(event)
-        loadMatch["team2"]["scorer"] = tempEvent
-        tempEvent = []
-        for event in loadMatch["team1"]["red_card"]:
-            if (int(event[1]) < int(state)):
-                tempEvent.append(event)
-        loadMatch["team2"]["red_card"] = tempEvent
-        tempEvent = []
-        for event in loadMatch["team1"]["yellow_card"]:
-            if (int(event[1]) < int(state)):
-                tempEvent.append(event)
-        loadMatch["team2"]["yellow_card"] = tempEvent
-    data[pid] = loadMatch
 
 
 def handleClient(client):  # Takes client socket as argument.
@@ -180,19 +134,21 @@ def handleClient(client):  # Takes client socket as argument.
                     f.close()
                 client.sendall(bytes("S-Đăng ký thành công", "utf8"))
         elif message == "-seematch-":
-            Line = {}
+            Line = []
+            loadMatchData()
             for ID in data.keys():
-                preProcess(ID)
-                detailMatch(ID, timeMatch[ID])
+                updateState(ID)
                 if (":" in timeMatch[ID]):
-                    Line[ID] = [timeMatch[ID], data[ID]["team1"]["name"],
-                                "? : ?", data[ID]["team2"]["name"]]
+                    Line.append([ID, data[ID]["start"], timeMatch[ID], data[ID]["team1"]["name"],
+                                 "? : ?", data[ID]["team2"]["name"]])
                 else:
-                    Line[ID] = [timeMatch[ID], data[ID]["team1"]["name"],
-                                str(len(data[ID]["team1"]["scorer"]))+":" +
-                                str(len(data[ID]["team2"]["scorer"])),
-                                data[ID]["team2"]["name"]]
-            client.sendall(pickle.dumps(Line))
+                    Line.append([ID, data[ID]["start"], timeMatch[ID], data[ID]["team1"]["name"],
+                                 str(len(data[ID]["team1"]["scorer"]))+":" +
+                                 str(len(data[ID]["team2"]["scorer"])),
+                                 data[ID]["team2"]["name"]])
+            newLine = sorted(Line, key=lambda k: datetime.datetime.strptime(
+                k[1], '%Y-%m-%d %H:%M:%S'))
+            client.sendall(pickle.dumps(newLine))
 
         elif message == "-detailmatch-":
             ID = client.recv(BUFSIZ).decode("utf8")
@@ -201,8 +157,8 @@ def handleClient(client):  # Takes client socket as argument.
                 continue
             client.sendall(bytes("getsuccess", "utf8"))
             res = None
-            preProcess(ID)
-            detailMatch(ID, timeMatch[ID])
+            loadMatchData()
+            updateState(ID)
             if (":" in timeMatch[ID]):
                 res = [timeMatch[ID], data[ID]["team1"]["name"],
                        "? : ?", data[ID]["team2"]["name"]]
@@ -300,20 +256,25 @@ def onClosing():
     root.destroy()
 
 
-def loadData():
+def loadAccountData():
     global account
-    global data
-    global timeMatch
+    global loginStatusList
     with open("account.json") as f:
         accountLoad = json.load(f)
         for x in accountLoad:
             account[x] = accountLoad[x]
             loginStatusList[x] = False
         f.close()
+
+
+def loadMatchData():
+    global data
+    global timeMatch
     with open("data.json") as f:
         data = json.load(f)
         for ID in data.keys():
             timeMatch[ID] = None
+        f.close()
 
 
 def disConnect():
@@ -326,7 +287,7 @@ root = Tk()
 tUI = thread.Thread(target=threadUI)
 tUI.start()
 
-loadData()
+loadAccountData()
 root.config(bg="#CECCBE")
 root.protocol("WM_DELETE_WINDOW", onClosing)
 root.mainloop()

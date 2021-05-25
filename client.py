@@ -4,8 +4,8 @@ from tkinter import *
 from functools import partial
 import tkinter.messagebox as tkmes
 import tkinter.ttk as ttk
-import tkinter.font as font
 import pickle
+
 
 isConnected = False
 isLogin = False
@@ -130,13 +130,14 @@ def clientWindow():
             return
         match = clientSocket.recv(BUFSIZ*BUFSIZ)
         infoMatch = pickle.loads(match)
-        i = 0
-        for event in infoMatch.keys():
-            i += 1
-            tempMatch = infoMatch[event]
-            tree.insert("", 'end', text="L"+str(i),
-                        values=(event, tempMatch[0],
-                                tempMatch[1], tempMatch[2], tempMatch[3]))
+        currentDate = ""
+        for tempMatch in infoMatch:
+            if(tempMatch[1][:10] != currentDate):
+                currentDate = tempMatch[1][:10]
+                tree.insert("", 'end',
+                            values=("", "", "", currentDate, ""), tags=("Date",))
+            tree.insert("", 'end',
+                        values=(tempMatch[0], tempMatch[2], tempMatch[3], tempMatch[4], tempMatch[5]))
 
     def detail():
         # pid parameter
@@ -262,7 +263,7 @@ def clientWindow():
     seeBtn = Button(newWindow, height=3, width=10,
                     text="Xem", command=see)
     seeBtn.grid(row=0, column=0, sticky=W+N +
-                S+E, pady=20, padx=(20, 50))
+                S+E, pady=20, padx=(110, 50))
     detailBtn = Button(newWindow, height=3, width=10,
                        text="Chi tiết", command=detail)
     detailBtn.grid(row=0, column=1, sticky=W+N +
@@ -283,14 +284,15 @@ def clientWindow():
     tree['show'] = 'headings'
     tree.column("1", width=50, anchor='c')
     tree.column("2", width=50, anchor='c')
-    tree.column("3", width=250, anchor='c')
+    tree.column("3", width=200, anchor='c')
     tree.column("4", width=100, anchor='c')
-    tree.column("5", width=250, anchor='c')
+    tree.column("5", width=200, anchor='c')
     tree.heading("1", text="ID")
     tree.heading("2", text="State")
     tree.heading("3", text="Team1")
     tree.heading("4", text="Score")
     tree.heading("5", text="Team2")
+    tree.tag_configure('Date', background='#e8e8e8')
     newWindow.protocol("WM_DELETE_WINDOW", onclosingClientWindow)
     newWindow.grab_set()
     newWindow.mainloop()
@@ -342,6 +344,16 @@ tkWindow.title("Connect")
 
 tkWindow.config(bg="#CECCBE")
 #tkWindow.title('Log in')
+
+
+def fixed_map(option):
+    return [elm for elm in style.map('Treeview', query_opt=option) if
+            elm[:2] != ('!disabled', '!selected')]
+
+
+style = ttk.Style()
+style.map('Treeview', foreground=fixed_map('foreground'),
+          background=fixed_map('background'))
 
 
 # login button
