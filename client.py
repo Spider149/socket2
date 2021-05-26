@@ -58,7 +58,7 @@ def validate(register, username, password):
                 global isLogin
                 isLogin = True
                 showSuccess(result[2:])
-                if (username!="admin"):
+                if (username != "admin"):
                     clientWindow()
                 else:
                     adminWindow()
@@ -262,7 +262,7 @@ def clientWindow():
     createNewWindow(newWindow, "Client")
     newWindow.minsize(340, 360)
     newWindow.config(bg="#CECCBE")
-    
+
     seeBtn = Button(newWindow, height=3, width=10,
                     text="Xem", command=see)
     seeBtn.grid(row=0, column=0, sticky=W+N +
@@ -427,7 +427,7 @@ def adminWindow():
                                lambda: onClosing2(newWindow, detailsWindow))
         detailsWindow.grab_set()
         detailsWindow.mainloop()
-        
+
     def addNewMatch():
         addmatchWindow = Toplevel(newWindow)
         createNewWindow(addmatchWindow, "Add New Match")
@@ -435,76 +435,76 @@ def adminWindow():
         addmatchWindow.config(bg="#CECCBE")
 
         labelNameTeam1 = Label(
-        addmatchWindow, text="Nhập tên đội 1:")
-        
+            addmatchWindow, text="Nhập tên đội 1:")
+
         labelNameTeam1.grid(row=0, column=0, pady=20, sticky=W +
-                            S+N+E, padx=(20, 20))
+                            S+N+E, padx=20)
         NameTeam1 = Text(addmatchWindow, height=1, width=35)
-        NameTeam1.grid(row=0, column=1, pady=10,
-                padx=20, sticky=W+S +
-                N+E)
-        
+        NameTeam1.grid(row=0, column=1, pady=20,
+                       padx=(0, 20), sticky=W+S +
+                       N+E)
+
         labelNameTeam2 = Label(
-        addmatchWindow, text="Nhập tên đội 2:")
-        
-        labelNameTeam2.grid(row=1, column=0, pady=20, sticky=W +
-                            S+N+E, padx=(20, 20))
+            addmatchWindow, text="Nhập tên đội 2:")
+
+        labelNameTeam2.grid(row=1, column=0, pady=(0, 20), sticky=W +
+                            S+N+E, padx=20)
         NameTeam2 = Text(addmatchWindow, height=1, width=35)
-        NameTeam2.grid(row=1, column=1, pady=10,
-                padx=20, sticky=W+S +
-                N+E)
-        
+        NameTeam2.grid(row=1, column=1, pady=(0, 20),
+                       padx=(0, 20), sticky=W+S +
+                       N+E)
+
         labelTimeMatch = Label(
-        addmatchWindow, text="Nhập thời gian thi đấu:")
-        
-        labelTimeMatch.grid(row=2, column=0, pady=20, sticky=W +
-                            S+N+E, padx=(20, 20))
+            addmatchWindow, text="Nhập thời gian thi đấu:")
+
+        labelTimeMatch.grid(row=2, column=0, pady=(0, 20), sticky=W +
+                            S+N+E, padx=20)
         TimeMatch = Text(addmatchWindow, height=1, width=35)
-        TimeMatch.grid(row=2, column=1, pady=10,
-                padx=20, sticky=W+S +
-                N+E)
+        TimeMatch.grid(row=2, column=1, pady=(0, 20),
+                       padx=(0, 20), sticky=W+S +
+                       N+E)
+
         def sendInfo():
             Name1 = NameTeam1.get("1.0", END)[:-1]
             Name2 = NameTeam2.get("1.0", END)[:-1]
             newTimeStart = TimeMatch.get("1.0", END)[:-1]
-            if (len(Name1)==0 or len(Name2)==0):
+            if (len(Name1) == 0 or len(Name2) == 0):
                 showErr("Tên đội không được để trống")
                 return
-            
+
             checkTime = None
             try:
-                checkTime = datetime.datetime.strptime(newTimeStart.strip(" ")+":00", '%Y-%m-%d %H:%M:%S')
+                checkTime = datetime.datetime.strptime(
+                    newTimeStart.strip(" ")+":00", '%Y-%m-%d %H:%M:%S')
             except ValueError:
                 showErr("Định dạng thời gian không hợp lệ")
                 return
-            
+
             if (checkTime < datetime.datetime.now()):
                 showErr("Thời gian không hợp lệ")
                 return
-            
+
             try:
                 clientSocket.sendall(bytes("-addmatch-", "utf8"))
             except:
                 showErr("Lỗi kết nối đến server")
                 return
-            
+
             matchInfo = {}
-            matchInfo["info"] = [Name1, Name2, newTimeStart+":00"]
+            matchInfo["info"] = [Name1, Name2, str(checkTime)]
             clientSocket.sendall(pickle.dumps(matchInfo))
             showSuccess("Thêm trận đấu thành công")
-            
-        sendBtn = Button(addmatchWindow,height=1, width=10, text="Gửi",
-                           command=sendInfo)
-        sendBtn.grid(row=3, column=0, pady=20, sticky=W +
-                           S+N+E, padx=(120, 20))
-        
-            
-        
+
+        sendBtn = Button(addmatchWindow, height=1, width=10, text="Gửi",
+                         command=sendInfo)
+        sendBtn.grid(row=3, column=0, pady=(0, 20), sticky=W +
+                     S+N+E, padx=20)
+
         addmatchWindow.protocol("WM_DELETE_WINDOW",
-                               lambda: onClosing2(newWindow, addmatchWindow))
+                                lambda: onClosing2(newWindow, addmatchWindow))
         addmatchWindow.grab_set()
         addmatchWindow.mainloop()
-    
+
     def removeMatch():
         try:
             clientSocket.sendall(bytes("-removematch-", "utf8"))
@@ -543,17 +543,17 @@ def adminWindow():
                        text="Log out", command=logout)
     logoutBtn.grid(row=0, column=2, sticky=W+N +
                    S+E, pady=20, padx=(0, 50))
-    
+
     addBtn = Button(newWindow, height=3, width=10,
-                       text="Thêm trận", command=addNewMatch)
+                    text="Thêm trận", command=addNewMatch)
     addBtn.grid(row=0, column=3, sticky=W+N +
-                   S+E, pady=20, padx=(0, 50))
-    
+                S+E, pady=20, padx=(0, 50))
+
     delBtn = Button(newWindow, height=3, width=10,
-                       text="Xóa trận", command=removeMatch)
+                    text="Xóa trận", command=removeMatch)
     delBtn.grid(row=0, column=4, sticky=W+N +
-                   S+E, pady=20, padx=(0, 50))
-    
+                S+E, pady=20, padx=(0, 50))
+
     tree = ttk.Treeview(newWindow, selectmode='browse')
     tree.grid(row=1, column=0, columnspan=5, sticky=W+N +
               S+E, padx=(20, 0))
