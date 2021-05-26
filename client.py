@@ -1,11 +1,10 @@
 import socket
 import threading as thread
 from tkinter import *
-from functools import partial
 import tkinter.messagebox as tkmes
 import tkinter.ttk as ttk
 import pickle
-
+import datetime
 
 isConnected = False
 isLogin = False
@@ -34,9 +33,9 @@ def validate(register, username, password):
     if(username == "" or password == ""):
         showErr("Username và password không được để trống")
         return
-    if(" " in username or " " in password or len(username) < 6 or len(password) < 6):
+    if(" " in username or " " in password or len(username) < 5 or len(password) < 5):
         showErr(
-            "Username và password phải có 6 ký tự trở lên và không chứa khoảng trắng")
+            "Username và password phải có 5 ký tự trở lên và không chứa khoảng trắng")
         return
     else:
         if(register):
@@ -59,7 +58,10 @@ def validate(register, username, password):
                 global isLogin
                 isLogin = True
                 showSuccess(result[2:])
-                clientWindow()
+                if (username!="admin"):
+                    clientWindow()
+                else:
+                    adminWindow()
             else:
                 showSuccess(result[2:])
 
@@ -259,7 +261,8 @@ def clientWindow():
     tkWindow.withdraw()
     createNewWindow(newWindow, "Client")
     newWindow.minsize(340, 360)
-
+    newWindow.config(bg="#CECCBE")
+    
     seeBtn = Button(newWindow, height=3, width=10,
                     text="Xem", command=see)
     seeBtn.grid(row=0, column=0, sticky=W+N +
@@ -299,7 +302,282 @@ def clientWindow():
 
 
 def adminWindow():
-    return
+    global isSee
+    isSee = False
+
+    def see():
+        global isSee
+        isSee = True
+        tree.delete(*tree.get_children())
+        try:
+            clientSocket.sendall(bytes("-seematch-", "utf8"))
+        except:
+            showErr("Lỗi kết nối đến server")
+            return
+        match = clientSocket.recv(BUFSIZ*BUFSIZ)
+        infoMatch = pickle.loads(match)
+        currentDate = ""
+        for tempMatch in infoMatch:
+            if(tempMatch[1][:10] != currentDate):
+                currentDate = tempMatch[1][:10]
+                tree.insert("", 'end',
+                            values=("", "", "", currentDate, ""), tags=("Date",))
+            tree.insert("", 'end',
+                        values=(tempMatch[0], tempMatch[2], tempMatch[3], tempMatch[4], tempMatch[5]))
+
+    def detail():
+        # pid parameter
+        global isSee
+        if (not isSee):
+            return
+        detailsWindow = Toplevel(newWindow)
+        createNewWindow(detailsWindow, "Details")
+        detailsWindow.minsize(30, 50)
+        detailsWindow.config(bg="#CECCBE")
+        tree = ttk.Treeview(detailsWindow, selectmode='browse')
+        tree.grid(row=1, column=0, columnspan=4, sticky=W+N +
+                  S+E, padx=(20, 0), pady=20)
+
+        vsb = ttk.Scrollbar(
+            detailsWindow, orient="vertical", command=tree.yview)
+        vsb.grid(row=1, column=4, sticky=W+N +
+                 S, padx=(0, 20), pady=(20))
+        tree.configure(yscrollcommand=vsb.set)
+        tree["columns"] = ("1", "2", "3", "4")
+        tree['show'] = 'headings'
+        tree.column("1", width=50, anchor='c')
+        tree.column("2", width=150, anchor='c')
+        tree.column("3", width=50, anchor='c')
+        tree.column("4", width=150, anchor='c')
+        tree.heading("1", text="Time")
+        tree.heading("2", text="Team1")
+        tree.heading("3", text="Score")
+        tree.heading("4", text="Team2")
+
+        def sendID():
+            try:
+                clientSocket.sendall(bytes("-detailmatch-", "utf8"))
+
+                IDdetails = ID.get("1.0", END)[:-1]
+                clientSocket.sendall(bytes(IDdetails, "utf8"))
+            except:
+                showErr("Lỗi kết nối đến server")
+                return
+            complete = clientSocket.recv(BUFSIZ).decode("utf8")
+            if (complete == "getsuccess"):
+                details = pickle.loads(
+                    clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
+                tree.delete(*tree.get_children())
+                i = 2
+                t1Score = 0
+                t2Score = 0
+                tree.insert("", 'end', text="L"+str(0),
+                            values=(details[0][0], details[0][1], details[0][2], details[0][3]))
+                tree.insert("", 'end', text="L"+str(1))
+                HTadded = False
+                for event in details[1]:
+                    if(event[3] == '1'):
+                        if int(event[1]) > 45:
+                            if(not HTadded):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=("HT", "", str(t1Score)+":"+str(t2Score), ""))
+                                HTadded = True
+                                i += 1
+                        if(event[2] == "score"):
+                            t1Score += 1
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', event[0]+" ghi bàn", str(t1Score)+":"+str(t2Score), ""))
+                        if(event[2] == "yellow"):
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', event[0]+" bị thẻ vàng", "", ""))
+                        if(event[2] == "red"):
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', event[0]+" bị thẻ đỏ", "", ""))
+                    if(event[3] == '2'):
+                        if int(event[1]) > 45:
+                            if(not HTadded):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=("HT", "", str(t1Score)+":"+str(t2Score), ""))
+                                HTadded = True
+                                i += 1
+                        if(event[2] == "score"):
+                            t2Score += 1
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', "", str(t1Score)+":"+str(t2Score), event[0]+" ghi bàn"))
+                        if(event[2] == "yellow"):
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', "", "", event[0]+" bị thẻ vàng"))
+                        if(event[2] == "red"):
+                            tree.insert("", 'end', text="L"+str(i),
+                                        values=(event[1]+'\'', "", "", event[0]+" bị thẻ đỏ"))
+                    i += 1
+
+            else:
+                showErr("ID không tồn tại")
+        ID = Text(detailsWindow, height=1, width=50)
+        ID.grid(row=0, column=0, pady=10,
+                padx=(20, 20), sticky=W+S +
+                N+E)
+        ID.insert(END, 'Nhập ID')
+        sendBtn = Button(
+            detailsWindow, height=1, width=12, text="Gửi", command=sendID)
+        sendBtn.grid(row=0, column=1, sticky=W+N +
+                     S+E, pady=10, padx=(0, 20))
+        detailsWindow.protocol("WM_DELETE_WINDOW",
+                               lambda: onClosing2(newWindow, detailsWindow))
+        detailsWindow.grab_set()
+        detailsWindow.mainloop()
+        
+    def addNewMatch():
+        addmatchWindow = Toplevel(newWindow)
+        createNewWindow(addmatchWindow, "Add New Match")
+        addmatchWindow.minsize(30, 50)
+        addmatchWindow.config(bg="#CECCBE")
+
+        labelNameTeam1 = Label(
+        addmatchWindow, text="Nhập tên đội 1:")
+        
+        labelNameTeam1.grid(row=0, column=0, pady=20, sticky=W +
+                            S+N+E, padx=(20, 20))
+        NameTeam1 = Text(addmatchWindow, height=1, width=35)
+        NameTeam1.grid(row=0, column=1, pady=10,
+                padx=20, sticky=W+S +
+                N+E)
+        
+        labelNameTeam2 = Label(
+        addmatchWindow, text="Nhập tên đội 2:")
+        
+        labelNameTeam2.grid(row=1, column=0, pady=20, sticky=W +
+                            S+N+E, padx=(20, 20))
+        NameTeam2 = Text(addmatchWindow, height=1, width=35)
+        NameTeam2.grid(row=1, column=1, pady=10,
+                padx=20, sticky=W+S +
+                N+E)
+        
+        labelTimeMatch = Label(
+        addmatchWindow, text="Nhập thời gian thi đấu:")
+        
+        labelTimeMatch.grid(row=2, column=0, pady=20, sticky=W +
+                            S+N+E, padx=(20, 20))
+        TimeMatch = Text(addmatchWindow, height=1, width=35)
+        TimeMatch.grid(row=2, column=1, pady=10,
+                padx=20, sticky=W+S +
+                N+E)
+        def sendInfo():
+            Name1 = NameTeam1.get("1.0", END)[:-1]
+            Name2 = NameTeam2.get("1.0", END)[:-1]
+            newTimeStart = TimeMatch.get("1.0", END)[:-1]
+            if (len(Name1)==0 or len(Name2)==0):
+                showErr("Tên đội không được để trống")
+                return
+            
+            checkTime = None
+            try:
+                checkTime = datetime.datetime.strptime(newTimeStart.strip(" ")+":00", '%Y-%m-%d %H:%M:%S')
+            except ValueError:
+                showErr("Định dạng thời gian không hợp lệ")
+                return
+            
+            if (checkTime < datetime.datetime.now()):
+                showErr("Thời gian không hợp lệ")
+                return
+            
+            try:
+                clientSocket.sendall(bytes("-addmatch-", "utf8"))
+            except:
+                showErr("Lỗi kết nối đến server")
+                return
+            
+            matchInfo = {}
+            matchInfo["info"] = [Name1, Name2, newTimeStart+":00"]
+            clientSocket.sendall(pickle.dumps(matchInfo))
+            showSuccess("Thêm trận đấu thành công")
+            
+        sendBtn = Button(addmatchWindow,height=1, width=10, text="Gửi",
+                           command=sendInfo)
+        sendBtn.grid(row=3, column=0, pady=20, sticky=W +
+                           S+N+E, padx=(120, 20))
+        
+            
+        
+        addmatchWindow.protocol("WM_DELETE_WINDOW",
+                               lambda: onClosing2(newWindow, addmatchWindow))
+        addmatchWindow.grab_set()
+        addmatchWindow.mainloop()
+    
+    def removeMatch():
+        try:
+            clientSocket.sendall(bytes("-removematch-", "utf8"))
+        except:
+            showErr("Lỗi kết nối đến server")
+            return
+
+    def onclosingClientWindow():
+        if tkmes.askokcancel("Log out", "Bạn có muốn log out khỏi tài khoản?"):
+            logout()
+
+    def logout():
+        try:
+            clientSocket.sendall(bytes("-logout-", "utf8"))
+        except:
+            pass
+        global isLogin
+        isLogin = False
+        newWindow.destroy()
+        tkWindow.deiconify()
+
+    newWindow = Toplevel(tkWindow)
+    tkWindow.withdraw()
+    createNewWindow(newWindow, "Admin")
+    newWindow.minsize(340, 360)
+    newWindow.config(bg="#CECCBE")
+    seeBtn = Button(newWindow, height=3, width=10,
+                    text="Xem", command=see)
+    seeBtn.grid(row=0, column=0, sticky=W+N +
+                S+E, pady=20, padx=(30, 50))
+    detailBtn = Button(newWindow, height=3, width=10,
+                       text="Chi tiết", command=detail)
+    detailBtn.grid(row=0, column=1, sticky=W+N +
+                   S+E, pady=20, padx=(0, 50))
+    logoutBtn = Button(newWindow, height=3, width=10,
+                       text="Log out", command=logout)
+    logoutBtn.grid(row=0, column=2, sticky=W+N +
+                   S+E, pady=20, padx=(0, 50))
+    
+    addBtn = Button(newWindow, height=3, width=10,
+                       text="Thêm trận", command=addNewMatch)
+    addBtn.grid(row=0, column=3, sticky=W+N +
+                   S+E, pady=20, padx=(0, 50))
+    
+    delBtn = Button(newWindow, height=3, width=10,
+                       text="Xóa trận", command=removeMatch)
+    delBtn.grid(row=0, column=4, sticky=W+N +
+                   S+E, pady=20, padx=(0, 50))
+    
+    tree = ttk.Treeview(newWindow, selectmode='browse')
+    tree.grid(row=1, column=0, columnspan=5, sticky=W+N +
+              S+E, padx=(20, 0))
+
+    vsb = ttk.Scrollbar(newWindow, orient="vertical", command=tree.yview)
+    vsb.grid(row=1, column=5, sticky=W+N +
+             S, padx=(0, 20))
+    tree.configure(yscrollcommand=vsb.set)
+    tree["columns"] = ("1", "2", "3", "4", "5")
+    tree['show'] = 'headings'
+    tree.column("1", width=50, anchor='c')
+    tree.column("2", width=50, anchor='c')
+    tree.column("3", width=200, anchor='c')
+    tree.column("4", width=100, anchor='c')
+    tree.column("5", width=200, anchor='c')
+    tree.heading("1", text="ID")
+    tree.heading("2", text="State")
+    tree.heading("3", text="Team1")
+    tree.heading("4", text="Score")
+    tree.heading("5", text="Team2")
+    tree.tag_configure('Date', background='#e8e8e8')
+    newWindow.protocol("WM_DELETE_WINDOW", onclosingClientWindow)
+    newWindow.grab_set()
+    newWindow.mainloop()
 
 
 def submitIP():
@@ -356,7 +634,7 @@ style.map('Treeview', foreground=fixed_map('foreground'),
           background=fixed_map('background'))
 
 
-# login button
+# connect button
 labelIP = Label(tkWindow, text="Nhập IP:")
 labelIP.grid(row=0, column=0, pady=20, sticky=W +
              S+N+E, padx=(20, 20))

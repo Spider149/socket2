@@ -53,9 +53,10 @@ def acceptIncomingConnections():
 
 def getDeltaTime(start):
     now = datetime.datetime.now()
-    if (str(now) < start):
-        return -2
     startTimeObj = datetime.datetime.strptime(start[2:], "%y-%m-%d %H:%M:%S")
+    if (now < startTimeObj):
+        return -2
+    
     during = now - startTimeObj
     if (str(type(during)) == str(type(datetime.datetime.now()))):
         if (during.day > 0):
@@ -87,6 +88,15 @@ def updateState(pid):
         else:
             timeMatch[pid] = "FT"
 
+def getMaxID():
+    global data
+    maxID = 0
+    for KEY in data.keys():
+        temp = int(KEY)
+        if (temp > maxID):
+            maxID = temp
+    
+    return maxID
 
 def handleClient(client):  # Takes client socket as argument.
     global account
@@ -208,15 +218,27 @@ def handleClient(client):  # Takes client socket as argument.
             print("%s:%s has disconnected." % addresses[client])
             del addresses[client]
             break
-
+        elif message == "-addmatch-":
+            matchInfo = pickle.loads(client.recv(1024))["info"]
+            maxID = getMaxID()
+            newMatch = {}
+            Team1 = {"name":matchInfo[0],"scorer":[],"red_card":[],"yellow_card":[]}
+            Team2 = {"name":matchInfo[1],"scorer":[],"red_card":[],"yellow_card":[]}
+            newMatch["start"] = matchInfo[2]
+            newMatch["team1"] = Team1
+            newMatch["team2"] = Team2
+            data[str(maxID+1)] = newMatch
+     
+            with open('data.json', 'w') as f:
+                json.dump(data, f)
+                f.close()
+            
+        elif message == "-removematch-":
+            return
+        
         elif message == "-logout-":
             isLogin = False
             loginStatusList[currentName] = False
-
-
-def broadcast(msg, prefix=""):  # prefix is for name identification.
-    for sock in clients:
-        sock.sendall(bytes(prefix, "utf8") + msg)
 
 
 def threadConnect(maxClientEntry):
@@ -279,7 +301,10 @@ def loadMatchData():
 
 def disConnect():
     for client in clients:
-        client.sendall(bytes("disconnect", "utf8"))
+        try:
+            client.sendall(bytes("disconnect", "utf8"))
+        except:
+            pass
 
 
 root = Tk()
