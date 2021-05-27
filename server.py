@@ -234,7 +234,19 @@ def handleClient(client):  # Takes client socket as argument.
                 f.close()
             
         elif message == "-removematch-":
-            return
+            ID = client.recv(1024).decode("utf8")
+            loadMatchData()
+            updateState(ID)
+            if (ID not in data.keys()):
+                client.sendall(bytes("-notexist-","utf8")) 
+            elif (":" not in timeMatch[ID]):
+                client.sendall(bytes("-removefail-","utf8"))
+            else:
+                client.sendall(bytes("-removesuccess-","utf8"))
+                del data[ID]
+                with open('data.json', 'w') as f:
+                    json.dump(data, f)
+                    f.close()
         
         elif message == "-logout-":
             isLogin = False

@@ -506,11 +506,45 @@ def adminWindow():
         addmatchWindow.mainloop()
 
     def removeMatch():
-        try:
-            clientSocket.sendall(bytes("-removematch-", "utf8"))
-        except:
-            showErr("Lỗi kết nối đến server")
+        # pid parameter
+        global isSee
+        if (not isSee):
             return
+        removeWindow = Toplevel(newWindow)
+        createNewWindow(removeWindow, "Details")
+        removeWindow.minsize(30, 50)
+        removeWindow.config(bg="#CECCBE")
+        
+        def sendID():
+            try:
+                clientSocket.sendall(bytes("-removematch-", "utf8"))
+                IDremove = ID.get("1.0", END)[:-1]
+                clientSocket.sendall(bytes(IDremove, "utf8"))
+            except:
+                showErr("Lỗi kết nối đến server")
+                return
+            
+            removeMessage = clientSocket.recv(1024).decode("utf8")
+            if (removeMessage=="-notexist-"):
+                showErr("ID không tồn tại")
+            elif (removeMessage=="-removefail-"):
+                showErr("Không thể xóa thông tin các trận đã hoặc đang đấu")
+            else:
+                showSuccess("Xóa thành công")
+        
+        ID = Text(removeWindow, height=1, width=50)
+        ID.grid(row=0, column=0, pady=10,
+                padx=(20, 20), sticky=W+S +
+                N+E)
+        ID.insert(END, 'Nhập ID')
+        sendBtn = Button(
+            removeWindow, height=1, width=12, text="Gửi", command=sendID)
+        sendBtn.grid(row=0, column=1, sticky=W+N +
+                     S+E, pady=10, padx=(0, 20))
+        removeWindow.protocol("WM_DELETE_WINDOW",
+                               lambda: onClosing2(newWindow, removeWindow))
+        removeWindow.grab_set()
+        removeWindow.mainloop()
 
     def onclosingClientWindow():
         if tkmes.askokcancel("Log out", "Bạn có muốn log out khỏi tài khoản?"):
