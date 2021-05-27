@@ -160,7 +160,7 @@ def handleClient(client):  # Takes client socket as argument.
                 k[1], '%Y-%m-%d %H:%M:%S'))
             client.sendall(pickle.dumps(newLine))
 
-        elif message == "-detailmatch-":
+        elif message == "-detailmatch-" or message == "-removeevent-":
             ID = client.recv(BUFSIZ).decode("utf8")
             if (ID not in data.keys()):
                 client.sendall(bytes("getfail", "utf8"))
@@ -210,7 +210,43 @@ def handleClient(client):  # Takes client socket as argument.
                     if (int(events[i][1]) > int(events[j][1])):
                         events[i], events[j] = events[j], events[i]
             listEvent["send"] = [res, events]
-            client.sendall(pickle.dumps(listEvent))
+            if (message=="-detailmatch-"):
+                client.sendall(pickle.dumps(listEvent))
+            else:
+                sTTRemove = int(client.recv(1024).decode("utf8"))
+                if (sTTRemove > len(events)):
+                    client.sendall(bytes("-removefail-","utf8"))
+                else:
+                    client.sendall(bytes("-removesuccess-","utf8"))
+                    print(sTTRemove)
+                    del events[sTTRemove - 1]
+                    details["team1"]["scorer"] = []
+                    details["team1"]["red_card"] = []
+                    details["team1"]["yellow_card"] = []
+                    details["team2"]["scorer"] = []
+                    details["team2"]["red_card"] = []
+                    details["team2"]["yellow_card"] = []
+                    for Eve in events:
+                        if Eve[3]=="1":
+                            if (Eve[2]=="scorer"):
+                                details["team1"]["scorer"].append(Eve)
+                            elif (Eve[2]=="red_card"):
+                                details["team1"]["red_card"].append(Eve)
+                            else:
+                                details["team1"]["yellow_card"].append(Eve)
+                        else:
+                            if (Eve[2]=="scorer"):
+                                details["team2"]["scorer"].append(Eve)
+                            elif (Eve[2]=="red_card"):
+                                details["team2"]["red_card"].append(Eve)
+                            else:
+                                details["team2"]["yellow_card"].append(Eve)
+                    data[ID] = details
+                    with open('data.json', 'w') as f:
+                        json.dump(data, f)
+                        f.close()
+                    listEvent["send"] = [res, events]
+                    client.sendall(pickle.dumps(listEvent))
 
         elif message == "-quit-":
             client.close()
@@ -246,8 +282,59 @@ def handleClient(client):  # Takes client socket as argument.
                 del data[ID]
                 with open('data.json', 'w') as f:
                     json.dump(data, f)
-                    f.close()
+                    f.close()        
         
+        elif message == "-addevent-":
+            ID = client.recv(BUFSIZ).decode("utf8")
+            if (ID not in data.keys()):
+                client.sendall(bytes("getfail", "utf8"))
+                continue
+            loadMatchData()
+            updateState(ID)
+            if (":" in timeMatch[ID]):
+                client.sendall(bytes("nochange", "utf8"))
+                continue
+            
+            client.sendall(bytes("getsuccess", "utf8"))
+            addIn = client.recv(BUFSIZ).decode("utf8")
+            details = data[ID]
+            namePlayer = client.recv(BUFSIZ).decode("utf8")
+            timeEve = client.recv(BUFSIZ).decode("utf8")
+            if (addIn=="-team1score-"):
+                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                    details["team1"]["scorer"].append([namePlayer,timeEve])
+                
+            elif (addIn=="-team1red-"):
+                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                    details["team1"]["red_card"].append([namePlayer,timeEve])
+            elif (addIn=="-team1yellow-"):
+                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                    details["team1"]["yellow_card"].append([namePlayer,timeEve])
+            elif (addIn=="-team2score-"):
+                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                    details["team2"]["scorer"].append([namePlayer,timeEve])
+            elif (addIn=="-team2red-"):
+                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                    details["team2"]["red_card"].append([namePlayer,timeEve])
+            elif (addIn=="-team2yellow-"):
+                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                    details["team2"]["yellow_card"].append([namePlayer,timeEve])
+            
+        elif message == "-settimestart-":
+            ID = client.recv(BUFSIZ).decode("utf8")
+            if (ID not in data.keys()):
+                client.sendall(bytes("getfail", "utf8"))
+                continue
+            client.sendall(bytes("getsuccess", "utf8"))
+            timeStart = client.recv(BUFSIZ).decode("utf8")
+            
+        elif message == "-settimematch-":
+            ID = client.recv(BUFSIZ).decode("utf8")
+            if (ID not in data.keys()):
+                client.sendall(bytes("getfail", "utf8"))
+                continue
+            client.sendall(bytes("getsuccess", "utf8"))
+            
         elif message == "-logout-":
             isLogin = False
             loginStatusList[currentName] = False
