@@ -465,8 +465,8 @@ def adminWindow():
                        N+E)
 
         def sendInfo():
-            Name1 = NameTeam1.get("1.0", END)[:-1]
-            Name2 = NameTeam2.get("1.0", END)[:-1]
+            Name1 = NameTeam1.get("1.0", END)[:-1].strip()
+            Name2 = NameTeam2.get("1.0", END)[:-1].strip()
             newTimeStart = TimeMatch.get("1.0", END)[:-1]
             if (len(Name1) == 0 or len(Name2) == 0):
                 showErr("Tên đội không được để trống")
@@ -618,7 +618,7 @@ def threadUISubmit():
 
 
 tkWindow = Tk()
-tkWindow.title("Connect")
+tkWindow.title("Client")
 
 tkWindow.config(bg="#CECCBE")
 #tkWindow.title('Log in')
