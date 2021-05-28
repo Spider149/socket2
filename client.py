@@ -340,7 +340,7 @@ def adminWindow():
                 clientSocket.sendall(bytes("-detailmatch-", "utf8"))
 
                 IDdetails = ID.get()
-                clientSocket.sendall(bytes(IDdetails, "utf8"))
+                clientSocket.sendall(bytes(IDdetails+" ", "utf8"))
             except:
                 showErr("Lỗi kết nối đến server")
                 return
@@ -401,7 +401,7 @@ def adminWindow():
                 clientSocket.sendall(bytes("-removeevent-", "utf8"))
                 
                 IDdetails = ID.get()
-                clientSocket.sendall(bytes(IDdetails, "utf8"))
+                clientSocket.sendall(bytes(IDdetails+" ", "utf8"))
             except:
                 showErr("Lỗi kết nối đến server")
                 return
@@ -476,12 +476,13 @@ def adminWindow():
                 clientSocket.sendall(bytes("-settimestart-", "utf8"))
                 
                 IDdetails = ID.get()
-                clientSocket.sendall(bytes(IDdetails, "utf8"))
+                clientSocket.sendall(bytes(IDdetails+" ", "utf8"))
             except:
                 showErr("Lỗi kết nối đến server")
                 return
             
             complete = clientSocket.recv(BUFSIZ).decode("utf8")
+
             if (complete == "getsuccess"):
                 checkTime = None
                 newTimeStart = changeTimeStart.get()
@@ -502,22 +503,12 @@ def adminWindow():
                     showErr("Lỗi kết nối đến server")
                     return
                 
-            else:
-                showErr("ID không tồn tại")
-            
-        
-        def duringTime():
-            try:
-                clientSocket.sendall(bytes("-settimematch-", "utf8"))
+                addSuccess = clientSocket.recv(BUFSIZ).decode("utf8")
+                if (addSuccess=="-changecompleted-"):
+                    showSuccess("Cập nhật thời gian thành công")
+                else:
+                    showErr("Thời gian không hợp lệ")
                 
-                IDdetails = ID.get()
-                clientSocket.sendall(bytes(IDdetails, "utf8"))
-            except:
-                showErr("Lỗi kết nối đến server")
-                return
-            complete = clientSocket.recv(BUFSIZ).decode("utf8")
-            if (complete == "getsuccess"):
-                print("OKie")
             else:
                 showErr("ID không tồn tại")
                 
@@ -531,11 +522,6 @@ def adminWindow():
                 showErr("Thời gian phải là một con số")
                 return
             try:
-                clientSocket.sendall(bytes(namePlayer,"utf8"))
-                clientSocket.sendall(bytes(timeEve,"utf8"))
-            except:
-                showErr("Lỗi kết nối đến server")
-            try:
                 clientSocket.sendall(bytes("-addevent-", "utf8"))
                 
                 IDdetails = ID.get()
@@ -543,58 +529,43 @@ def adminWindow():
             except:
                 showErr("Lỗi kết nối đến server")
                 return
-            checkSelect = True
+            
             complete = clientSocket.recv(BUFSIZ).decode("utf8")
+            eventAdded = {"name":namePlayer,"time":timeEve,"addIn":""}
             if (complete == "getsuccess"):
                 teamSelected = teamChoice.current()
                 eventSelected = eventChoice.current()
                 
                 if (teamSelected==0): # team 1
-                    if (eventSelected==0):#ghi bàn
-                        try:
-                            clientSocket.sendall(bytes("-team1score-","utf8"))
-                        except:
-                            return
+                    if (eventSelected==0):#ghi bàn 
+                        eventAdded["addIn"] = "-team1score-"
                     elif (eventSelected==1):#thẻ đỏ
-                        try:
-                            clientSocket.sendall(bytes("-team1red-","utf8"))
-                        except:
-                            return
-                    elif (eventSelected==2):#thẻ vàng
-                        try:
-                            clientSocket.sendall(bytes("-team1yellow-","utf8"))
-                        except:
-                            return
-                    else:
-                        checkSelect = False
+                        eventAdded["addIn"] = "-team1red-"
+                    elif (eventSelected==2):#thẻ vàng 
+                        eventAdded["addIn"] = "-team1yellow-"
                 elif (teamSelected==1):
-                    if (eventSelected==0):#ghi bàn
-                        try:
-                            clientSocket.sendall(bytes("-team2score-","utf8"))
-                        except:
-                            return
+                    if (eventSelected==0):#ghi bàn 
+                        eventAdded["addIn"] = "-team2score-"
                     elif (eventSelected==1):#thẻ đỏ
-                        try:
-                            clientSocket.sendall(bytes("-team2red-","utf8"))
-                        except:
-                            return
-                    elif (eventSelected==2):#thẻ vàng
-                        try:
-                            clientSocket.sendall(bytes("-team2yellow-","utf8"))
-                        except:
-                            return
-                    else:
-                        checkSelect = False
+                        eventAdded["addIn"] = "-team2red-"
+                    elif (eventSelected==2):#thẻ vàng 
+                        eventAdded["addIn"] = "-team2yellow-"   
+
+                try:
+                    clientSocket.sendall(pickle.dumps(eventAdded))
+                except:
+                    showErr("Lỗi kết nối đến server")
+                    return
+                    
+                addComplete = clientSocket.recv(BUFSIZ).decode("utf8")
+                if (addComplete=="-addcomplete-"):
+                    showSuccess("Đã thêm thành công")
                 else:
-                    checkSelect = False
+                    showErr("Hãy chọn sự kiện và nhập thời gian hợp lệ")
             elif (complete == "nochange"):
                 showErr("Không thể cập nhật cho trận đấu chưa diễn ra")
             else:
                 showErr("ID không tồn tại")
-            if (not checkSelect):
-                showErr("Hãy chọn đội và sự kiện trước khi gửi")
-            else:
-                showSuccess("Thêm sự kiện thành công")
                 
         
         labelID = Label(detailsWindow,text="Nhập ID")
@@ -615,7 +586,7 @@ def adminWindow():
         
         removeEventBtn = Button(detailsWindow,text="Xóa",command=removeEve)
         removeEventBtn.place(relx=0.825,rely=0.085,relwidth=0.15,relheight=0.05)
-        
+        '''
         labelIimeMatch = Label(detailsWindow,text="Thời gian thi đấu")
         labelIimeMatch.place(relx=0.033, rely=0.15, relwidth=0.25,relheight=0.05)
         
@@ -624,49 +595,49 @@ def adminWindow():
         
         setTimeMatchtBtn = Button(detailsWindow,text="Cập nhật",command=duringTime)
         setTimeMatchtBtn.place(relx=0.825,rely=0.15,relwidth=0.15,relheight=0.05)
-        
+        '''
         labelIimeStart = Label(detailsWindow,text="Thời gian bắt đầu")
-        labelIimeStart.place(relx=0.033, rely=0.215, relwidth=0.25,relheight=0.05)
+        labelIimeStart.place(relx=0.033, rely=0.15, relwidth=0.25,relheight=0.05)
         
         changeTimeStart = Entry(detailsWindow)
-        changeTimeStart.place(relx=0.3,rely=0.215,relwidth=0.5,relheight=0.05)
+        changeTimeStart.place(relx=0.3,rely=0.15,relwidth=0.5,relheight=0.05)
         
         setTimeStartBtn = Button(detailsWindow,text="Cập nhật",command=setStartTime)
-        setTimeStartBtn.place(relx=0.825,rely=0.215,relwidth=0.15,relheight=0.05)
+        setTimeStartBtn.place(relx=0.825,rely=0.15,relwidth=0.15,relheight=0.05)
         
         labelTeam = Label(detailsWindow,text="Chọn đội")
-        labelTeam.place(relx=0.033, rely=0.28, relwidth=0.17,relheight=0.05)
+        labelTeam.place(relx=0.033, rely=0.215, relwidth=0.17,relheight=0.05)
         
         teamChoice = ttk.Combobox(detailsWindow,
                                         textvariable=StringVar())
-        teamChoice.place(relx=0.22, rely=0.28, relwidth=0.28,relheight=0.05)
+        teamChoice.place(relx=0.22, rely=0.215, relwidth=0.28,relheight=0.05)
         teamChoice['values'] = ("Team1","Team2")
         
         labelEvent = Label(detailsWindow,text="Chọn sự kiện")
-        labelEvent.place(relx=0.52, rely=0.28, relwidth=0.19,relheight=0.05)
+        labelEvent.place(relx=0.52, rely=0.215, relwidth=0.19,relheight=0.05)
         
         eventChoice = ttk.Combobox(detailsWindow,
                                         textvariable=StringVar())
-        eventChoice.place(relx=0.73, rely=0.28, relwidth=0.24,relheight=0.05)
+        eventChoice.place(relx=0.73, rely=0.215, relwidth=0.24,relheight=0.05)
         eventChoice['values'] = ("Ghi bàn","Thẻ đỏ","Thẻ vàng")
         
         labelName = Label(detailsWindow,text="Tên cầu thủ")
-        labelName.place(relx=0.033, rely=0.35, relwidth=0.17,relheight=0.05)
+        labelName.place(relx=0.033, rely=0.28, relwidth=0.17,relheight=0.05)
         
         nameSoccer = Entry(detailsWindow)
-        nameSoccer.place(relx=0.22, rely=0.35, relwidth=0.28,relheight=0.05)
+        nameSoccer.place(relx=0.22, rely=0.28, relwidth=0.28,relheight=0.05)
         
         labelTime = Label(detailsWindow,text="Phút")
-        labelTime.place(relx=0.52, rely=0.35, relwidth=0.19,relheight=0.05)
+        labelTime.place(relx=0.52, rely=0.28, relwidth=0.19,relheight=0.05)
         
         timeEvent = Entry(detailsWindow)
-        timeEvent.place(relx=0.73, rely=0.35, relwidth=0.24,relheight=0.05)
+        timeEvent.place(relx=0.73, rely=0.28, relwidth=0.24,relheight=0.05)
         
         sendEventBtn = Button(detailsWindow,text="Cập nhật",command=addEve)
-        sendEventBtn.place(relx=0.435,rely=0.415,relwidth=0.15,relheight=0.05)
+        sendEventBtn.place(relx=0.435,rely=0.35,relwidth=0.15,relheight=0.05)
         
         details = Frame(detailsWindow)
-        details.place(relx=0.04,rely=0.48,relwidth=0.925,relheight=0.495)
+        details.place(relx=0.04,rely=0.415,relwidth=0.925,relheight=0.563)
         
         tree = ttk.Treeview(details, selectmode='browse')
         tree.pack(side=LEFT, fill=BOTH, expand=TRUE)

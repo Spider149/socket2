@@ -161,7 +161,7 @@ def handleClient(client):  # Takes client socket as argument.
             client.sendall(pickle.dumps(newLine))
 
         elif message == "-detailmatch-" or message == "-removeevent-":
-            ID = client.recv(BUFSIZ).decode("utf8")
+            ID = client.recv(BUFSIZ).decode("utf8").strip(" ")
             if (ID not in data.keys()):
                 client.sendall(bytes("getfail", "utf8"))
                 continue
@@ -219,7 +219,6 @@ def handleClient(client):  # Takes client socket as argument.
                 else:
                     client.sendall(bytes("-removesuccess-","utf8"))
                     
-                    print(sTTRemove)
                     if (sTTRemove==len(events)+1):    
                         del events[sTTRemove - 2]
                     elif (int(events[sTTRemove - 1][1]) > 45):
@@ -248,7 +247,7 @@ def handleClient(client):  # Takes client socket as argument.
                             else:
                                 details["team2"]["yellow_card"].append([Eve[0],Eve[1]])
                     data[ID] = details
-                    print(details)
+    
                     with open('data.json', 'w') as f:
                         json.dump(data, f)
                         f.close()
@@ -286,7 +285,7 @@ def handleClient(client):  # Takes client socket as argument.
                 f.close()
             
         elif message == "-removematch-":
-            ID = client.recv(1024).decode("utf8")
+            ID = client.recv(1024).decode("utf8").strip(" ")
             loadMatchData()
             updateState(ID)
             if (ID not in data.keys()):
@@ -301,7 +300,7 @@ def handleClient(client):  # Takes client socket as argument.
                     f.close()        
         
         elif message == "-addevent-":
-            ID = client.recv(BUFSIZ).decode("utf8")
+            ID = client.recv(BUFSIZ).decode("utf8").strip(" ")
             if (ID not in data.keys()):
                 client.sendall(bytes("getfail", "utf8"))
                 continue
@@ -310,47 +309,129 @@ def handleClient(client):  # Takes client socket as argument.
             if (":" in timeMatch[ID]):
                 client.sendall(bytes("nochange", "utf8"))
                 continue
-            
             client.sendall(bytes("getsuccess", "utf8"))
-            addIn = client.recv(BUFSIZ).decode("utf8")
+            eventAdded = pickle.loads(client.recv(BUFSIZ))
+            addIn = eventAdded["addIn"]
+            namePlayer = eventAdded["name"]
+            timeEve = eventAdded["time"]
             details = data[ID]
-            namePlayer = client.recv(BUFSIZ).decode("utf8")
-            timeEve = client.recv(BUFSIZ).decode("utf8")
+            checkAdded = True
             if (addIn=="-team1score-"):
-                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                if (timeMatch[ID]=="FT"):
+                    if (int(timeEve) <= 90):
+                        details["team1"]["scorer"].append([namePlayer,timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                elif (timeMatch[ID]=="HT" and int(timeEve) <= 45):
                     details["team1"]["scorer"].append([namePlayer,timeEve])
-                
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
+                    details["team1"]["scorer"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                else:
+                    client.sendall(bytes("-addfail-", "utf8"))
             elif (addIn=="-team1red-"):
-                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                if (timeMatch[ID]=="FT"):
+                    if (int(timeEve) <= 90):
+                        details["team1"]["red_card"].append([namePlayer,timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                elif (timeMatch[ID]=="HT" and int(timeEve) <= 45):
                     details["team1"]["red_card"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
+                    details["team1"]["red_card"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                else:
+                    client.sendall(bytes("-addfail-", "utf8"))
             elif (addIn=="-team1yellow-"):
-                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                if (timeMatch[ID]=="FT"):
+                    if (int(timeEve) <= 90):
+                        details["team1"]["yellow_card"].append([namePlayer,timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                elif (timeMatch[ID]=="HT" and int(timeEve) <= 45):
                     details["team1"]["yellow_card"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
+                    details["team1"]["yellow_card"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                else:
+                    client.sendall(bytes("-addfail-", "utf8"))
             elif (addIn=="-team2score-"):
-                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                if (timeMatch[ID]=="FT"):
+                    if (int(timeEve) <= 90):
+                        details["team2"]["scorer"].append([namePlayer,timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                elif (timeMatch[ID]=="HT" and int(timeEve) <= 45):
                     details["team2"]["scorer"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (int(timeMatch[ID][0:timeMatch[ID].find("'")])  >= int(timeEve)):
+                    details["team2"]["scorer"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                else:
+                    client.sendall(bytes("-addfail-", "utf8"))
             elif (addIn=="-team2red-"):
-                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                if (timeMatch[ID]=="FT"):
+                    if (int(timeEve) <= 90):
+                        details["team2"]["red_card"].append([namePlayer,timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                elif (timeMatch[ID]=="HT" and int(timeEve) <= 45):
                     details["team2"]["red_card"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
+                    details["team2"]["red_card"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                else:
+                    client.sendall(bytes("-addfail-", "utf8"))
             elif (addIn=="-team2yellow-"):
-                if (timeMatch[ID]=="FT" and int(timeEve) <= 90):
+                if (timeMatch[ID]=="FT"):
+                    if (int(timeEve) <= 90):
+                        details["team2"]["yellow_card"].append([namePlayer,timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                elif (timeMatch[ID]=="HT" and int(timeEve) <= 45):
                     details["team2"]["yellow_card"].append([namePlayer,timeEve])
-            
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
+                    details["team2"]["yellow_card"].append([namePlayer,timeEve])
+                    client.sendall(bytes("-addcomplete-", "utf8"))
+                else:
+                    client.sendall(bytes("-addfail-", "utf8"))
+            else:
+                client.sendall(bytes("-addfail-", "utf8"))
+                checkAdded = False
+            if (checkAdded):
+                data[ID] = details
+                with open('data.json', 'w') as f:
+                    json.dump(data, f)
+                    f.close()
+                
         elif message == "-settimestart-":
-            ID = client.recv(BUFSIZ).decode("utf8")
+            ID = client.recv(BUFSIZ).decode("utf8").strip(" ")
+  
             if (ID not in data.keys()):
                 client.sendall(bytes("getfail", "utf8"))
                 continue
             client.sendall(bytes("getsuccess", "utf8"))
-            timeStart = client.recv(BUFSIZ).decode("utf8")
-            
-        elif message == "-settimematch-":
-            ID = client.recv(BUFSIZ).decode("utf8")
-            if (ID not in data.keys()):
-                client.sendall(bytes("getfail", "utf8"))
-                continue
-            client.sendall(bytes("getsuccess", "utf8"))
-            
+            newTimeStart = client.recv(BUFSIZ).decode("utf8").strip(" ")
+            updateState(ID)
+            if (":" not in timeMatch[ID]):
+                client.sendall(bytes("-changefail-", "utf8"))
+            else:
+                data[ID]["start"] = newTimeStart
+                client.sendall(bytes("-changecompleted-", "utf8"))
+                with open('data.json', 'w') as f:
+                    json.dump(data, f)
+                    f.close()
         elif message == "-logout-":
             isLogin = False
             loginStatusList[currentName] = False
