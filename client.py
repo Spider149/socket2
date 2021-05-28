@@ -416,7 +416,7 @@ def adminWindow():
                         return
                     removeComplete = clientSocket.recv(BUFSIZ).decode("utf8")
                     if (removeComplete=="-removefail-"):
-                        showerror("Số thứ tự không hợp lệ")
+                        showError("Số thứ tự không hợp lệ")
                     else:
                         showSuccess("Đã xóa thành công")
                         details = pickle.loads(

@@ -214,12 +214,18 @@ def handleClient(client):  # Takes client socket as argument.
                 client.sendall(pickle.dumps(listEvent))
             else:
                 sTTRemove = int(client.recv(1024).decode("utf8"))
-                if (sTTRemove > len(events)):
+                if (sTTRemove > len(events)+1):
                     client.sendall(bytes("-removefail-","utf8"))
                 else:
                     client.sendall(bytes("-removesuccess-","utf8"))
+                    
                     print(sTTRemove)
-                    del events[sTTRemove - 1]
+                    if (sTTRemove==len(events)+1):    
+                        del events[sTTRemove - 2]
+                    elif (int(events[sTTRemove - 1][1]) > 45):
+                        del events[sTTRemove - 2]
+                    else:
+                        del events[sTTRemove - 1]
                     details["team1"]["scorer"] = []
                     details["team1"]["red_card"] = []
                     details["team1"]["yellow_card"] = []
@@ -228,26 +234,36 @@ def handleClient(client):  # Takes client socket as argument.
                     details["team2"]["yellow_card"] = []
                     for Eve in events:
                         if Eve[3]=="1":
-                            if (Eve[2]=="scorer"):
-                                details["team1"]["scorer"].append(Eve)
-                            elif (Eve[2]=="red_card"):
-                                details["team1"]["red_card"].append(Eve)
+                            if (Eve[2]=="score"):
+                                details["team1"]["scorer"].append([Eve[0],Eve[1]])
+                            elif (Eve[2]=="red"):
+                                details["team1"]["red_card"].append([Eve[0],Eve[1]])
                             else:
-                                details["team1"]["yellow_card"].append(Eve)
+                                details["team1"]["yellow_card"].append([Eve[0],Eve[1]])
                         else:
-                            if (Eve[2]=="scorer"):
-                                details["team2"]["scorer"].append(Eve)
-                            elif (Eve[2]=="red_card"):
-                                details["team2"]["red_card"].append(Eve)
+                            if (Eve[2]=="score"):
+                                details["team2"]["scorer"].append([Eve[0],Eve[1]])
+                            elif (Eve[2]=="red"):
+                                details["team2"]["red_card"].append([Eve[0],Eve[1]])
                             else:
-                                details["team2"]["yellow_card"].append(Eve)
+                                details["team2"]["yellow_card"].append([Eve[0],Eve[1]])
                     data[ID] = details
+                    print(details)
                     with open('data.json', 'w') as f:
                         json.dump(data, f)
                         f.close()
+                    updateState(ID)
+                    if (":" in timeMatch[ID]):
+                        res = [timeMatch[ID], data[ID]["team1"]["name"],
+                               "? : ?", data[ID]["team2"]["name"]]
+                    else:
+                        res = [timeMatch[ID], data[ID]["team1"]["name"],
+                               str(len(data[ID]["team1"]["scorer"]))+":" +
+                               str(len(data[ID]["team2"]["scorer"])),
+                               data[ID]["team2"]["name"]]
                     listEvent["send"] = [res, events]
                     client.sendall(pickle.dumps(listEvent))
-
+            
         elif message == "-quit-":
             client.close()
             del clients[client]
