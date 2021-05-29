@@ -40,18 +40,14 @@
             "scorer": [
                 [
                     "Sanchez",
-                    "14",
-                    "score",
-                    "1"
+                    "14"
                 ]
             ],
             "red_card": [],
             "yellow_card": [
                 [
                     "Bruno",
-                    "15",
-                    "yellow",
-                    "1"
+                    "15"
                 ]
             ]
         },
@@ -60,15 +56,11 @@
             "scorer": [
                 [
                     "Leao",
-                    "20",
-                    "score",
-                    "2"
+                    "20"
                 ],
                 [
                     "Ivanovic",
-                    "36",
-                    "score",
-                    "2"
+                    "36"
                 ]
             ],
             "red_card": [],
@@ -108,8 +100,8 @@
                     "80"
                 ],
                 [
-                    "Dune",
-                    "95"
+                    "Done",
+                    "85"
                 ]
             ],
             "red_card": [],
@@ -219,9 +211,7 @@
             "scorer": [
                 [
                     "Ebasio",
-                    "42",
-                    "score",
-                    "1"
+                    "42"
                 ]
             ],
             "red_card": [],
@@ -233,9 +223,7 @@
             "red_card": [
                 [
                     "Joan",
-                    "63",
-                    "red",
-                    "2"
+                    "63"
                 ]
             ],
             "yellow_card": []
@@ -546,7 +534,7 @@
         }
     },
     "117": {
-        "start": "2021-05-29 22:00:00",
+        "start": "2021-05-29 21:00:00",
         "team1": {
             "name": "Manchester City",
             "scorer": [],
@@ -561,7 +549,7 @@
         }
     },
     "118": {
-        "start": "2021-05-31 19:00:00",
+        "start": "2021-05-31 20:00:00",
         "team1": {
             "name": "Barcelona",
             "scorer": [],
@@ -600,126 +588,6 @@
         },
         "team2": {
             "name": "Client2",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        }
-    },
-    "121": {
-        "start": "2021-06-01 21:00:00",
-        "team1": {
-            "name": "Arsenal",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        },
-        "team2": {
-            "name": "Leicester City",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        }
-    },
-    "122": {
-        "start": "2021-06-01 21:30:00",
-        "team1": {
-            "name": "Aston Villa",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        },
-        "team2": {
-            "name": "Leicester City",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        }
-    },
-    "123": {
-        "start": "2021-06-03 20:30:00",
-        "team1": {
-            "name": "Brighton",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        },
-        "team2": {
-            "name": "Leeds United",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        }
-    },
-    "124": {
-        "start": "2021-06-01 20:30:00",
-        "team1": {
-            "name": "Manchester City",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        },
-        "team2": {
-            "name": "Manchester United",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        }
-    },
-    "125": {
-        "start": "2021-06-03 21:00:00",
-        "team1": {
-            "name": "Wolverhampton",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        },
-        "team2": {
-            "name": "Everton",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        }
-    },
-    "126": {
-        "start": "2021-06-03 22:00:00",
-        "team1": {
-            "name": "A",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        },
-        "team2": {
-            "name": "B",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        }
-    },
-    "127": {
-        "start": "2021-06-03 20:00:00",
-        "team1": {
-            "name": "A",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        },
-        "team2": {
-            "name": "B",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        }
-    },
-    "128": {
-        "start": "2021-06-04 22:00:00",
-        "team1": {
-            "name": "C",
-            "scorer": [],
-            "red_card": [],
-            "yellow_card": []
-        },
-        "team2": {
-            "name": "D",
             "scorer": [],
             "red_card": [],
             "yellow_card": []
