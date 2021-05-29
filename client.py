@@ -148,6 +148,8 @@ def clientWindow():
         detailsWindow = Toplevel(newWindow)
         createNewWindow(detailsWindow, "Details")
         detailsWindow.minsize(30, 50)
+        detailsWindow.config(bg="#CECCBE")
+        
         tree = ttk.Treeview(detailsWindow, selectmode='browse')
         tree.grid(row=1, column=0, columnspan=4, sticky=W+N +
                   S+E, padx=(20, 0), pady=20)
@@ -416,9 +418,8 @@ def adminWindow():
                         return
                     removeComplete = clientSocket.recv(BUFSIZ).decode("utf8")
                     if (removeComplete=="-removefail-"):
-                        showError("Số thứ tự không hợp lệ")
+                        showErr("Số thứ tự không hợp lệ")
                     else:
-                        showSuccess("Đã xóa thành công")
                         details = pickle.loads(
                     clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
                         tree.delete(*tree.get_children())
@@ -465,7 +466,8 @@ def adminWindow():
                                     tree.insert("", 'end', text="L"+str(i),
                                                 values=(str(i-1),event[1]+'\'', "", "", event[0]+" bị thẻ đỏ"))
                             i += 1
-                    
+                        
+                    showSuccess("Đã xóa thành công")
                 else:
                     showErr("Phải nhập vào một số")
             else:
@@ -505,6 +507,11 @@ def adminWindow():
                 
                 addSuccess = clientSocket.recv(BUFSIZ).decode("utf8")
                 if (addSuccess=="-changecompleted-"):
+                    updateTimeStart = pickle.loads(
+                    clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
+                    tree.delete(*tree.get_children())
+                    tree.insert("", 'end', text="L"+str(0),
+                                    values=("",updateTimeStart[0], updateTimeStart[1], updateTimeStart[2], updateTimeStart[3]))
                     showSuccess("Cập nhật thời gian thành công")
                 else:
                     showErr("Thời gian không hợp lệ")
@@ -559,6 +566,52 @@ def adminWindow():
                     
                 addComplete = clientSocket.recv(BUFSIZ).decode("utf8")
                 if (addComplete=="-addcomplete-"):
+                    details = pickle.loads(
+                    clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
+                    tree.delete(*tree.get_children())
+                    i = 2
+                    t1Score = 0
+                    t2Score = 0
+                    tree.insert("", 'end', text="L"+str(0),
+                                values=("",details[0][0], details[0][1], details[0][2], details[0][3]))
+                    tree.insert("", 'end', text="L"+str(1))
+                    HTadded = False
+                    for event in details[1]:
+                        if(event[3] == '1'):
+                            if int(event[1]) > 45:
+                                if(not HTadded):
+                                    tree.insert("", 'end', text="L"+str(i),
+                                                values=(str(i-1), "HT", "", str(t1Score)+":"+str(t2Score), ""))
+                                    HTadded = True
+                                    i += 1
+                            if(event[2] == "score"):
+                                t1Score += 1
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1),event[1]+'\'', event[0]+" ghi bàn", str(t1Score)+":"+str(t2Score), ""))
+                            if(event[2] == "yellow"):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1),event[1]+'\'', event[0]+" bị thẻ vàng", "", ""))
+                            if(event[2] == "red"):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1),event[1]+'\'', event[0]+" bị thẻ đỏ", "", ""))
+                        if(event[3] == '2'):
+                            if int(event[1]) > 45:
+                                if(not HTadded):
+                                    tree.insert("", 'end', text="L"+str(i),
+                                                values=(str(i-1),"HT", "", str(t1Score)+":"+str(t2Score), ""))
+                                    HTadded = True
+                                    i += 1
+                            if(event[2] == "score"):
+                                t2Score += 1
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1),event[1]+'\'', "", str(t1Score)+":"+str(t2Score), event[0]+" ghi bàn"))
+                            if(event[2] == "yellow"):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1),event[1]+'\'', "", "", event[0]+" bị thẻ vàng"))
+                            if(event[2] == "red"):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1),event[1]+'\'', "", "", event[0]+" bị thẻ đỏ"))
+                        i += 1
                     showSuccess("Đã thêm thành công")
                 else:
                     showErr("Hãy chọn sự kiện và nhập thời gian hợp lệ")
@@ -586,16 +639,7 @@ def adminWindow():
         
         removeEventBtn = Button(detailsWindow,text="Xóa",command=removeEve)
         removeEventBtn.place(relx=0.825,rely=0.085,relwidth=0.15,relheight=0.05)
-        '''
-        labelIimeMatch = Label(detailsWindow,text="Thời gian thi đấu")
-        labelIimeMatch.place(relx=0.033, rely=0.15, relwidth=0.25,relheight=0.05)
         
-        changeTimeMatch = Entry(detailsWindow)
-        changeTimeMatch.place(relx=0.3,rely=0.15,relwidth=0.5,relheight=0.05)
-        
-        setTimeMatchtBtn = Button(detailsWindow,text="Cập nhật",command=duringTime)
-        setTimeMatchtBtn.place(relx=0.825,rely=0.15,relwidth=0.15,relheight=0.05)
-        '''
         labelIimeStart = Label(detailsWindow,text="Thời gian bắt đầu")
         labelIimeStart.place(relx=0.033, rely=0.15, relwidth=0.25,relheight=0.05)
         
@@ -657,6 +701,7 @@ def adminWindow():
         tree.heading("3", text="Team1")
         tree.heading("4", text="Score")
         tree.heading("5", text="Team2")
+        
         
         detailsWindow.protocol("WM_DELETE_WINDOW",
                                lambda: onClosing2(newWindow, detailsWindow))
@@ -747,7 +792,7 @@ def adminWindow():
         if (not isSee):
             return
         removeWindow = Toplevel(newWindow)
-        createNewWindow(removeWindow, "Details")
+        createNewWindow(removeWindow, "Delete")
         removeWindow.minsize(30, 50)
         removeWindow.config(bg="#CECCBE")
         
@@ -801,6 +846,7 @@ def adminWindow():
     createNewWindow(newWindow, "Admin")
     newWindow.minsize(340, 360)
     newWindow.config(bg="#CECCBE")
+    newWindow.resizable(False,False)
     seeBtn = Button(newWindow, height=3, width=10,
                     text="Xem", command=see)
     seeBtn.grid(row=0, column=0, sticky=W+N +

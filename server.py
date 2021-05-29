@@ -414,6 +414,51 @@ def handleClient(client):  # Takes client socket as argument.
                 with open('data.json', 'w') as f:
                     json.dump(data, f)
                     f.close()
+                res = None
+                loadMatchData()
+                updateState(ID)
+                if (":" in timeMatch[ID]):
+                    res = [timeMatch[ID], data[ID]["team1"]["name"],
+                           "? : ?", data[ID]["team2"]["name"]]
+                else:
+                    res = [timeMatch[ID], data[ID]["team1"]["name"],
+                           str(len(data[ID]["team1"]["scorer"]))+":" +
+                           str(len(data[ID]["team2"]["scorer"])),
+                           data[ID]["team2"]["name"]]
+    
+                details = data[ID]
+                listEvent = {}
+                events = []
+                for Eve in details["team1"]["scorer"]:
+                    Eve.append("score")
+                    Eve.append("1")
+                    events.append(Eve)
+                for Eve in details["team1"]["red_card"]:
+                    Eve.append("red")
+                    Eve.append("1")
+                    events.append(Eve)
+                for Eve in details["team1"]["yellow_card"]:
+                    Eve.append("yellow")
+                    Eve.append("1")
+                    events.append(Eve)
+                for Eve in details["team2"]["scorer"]:
+                    Eve.append("score")
+                    Eve.append("2")
+                    events.append(Eve)
+                for Eve in details["team2"]["red_card"]:
+                    Eve.append("red")
+                    Eve.append("2")
+                    events.append(Eve)
+                for Eve in details["team2"]["yellow_card"]:
+                    Eve.append("yellow")
+                    Eve.append("2")
+                    events.append(Eve)
+                for i in range(len(events) - 1):
+                    for j in range(i+1, len(events)):
+                        if (int(events[i][1]) > int(events[j][1])):
+                            events[i], events[j] = events[j], events[i]
+                listEvent["send"] = [res, events]
+                client.sendall(pickle.dumps(listEvent))
                 
         elif message == "-settimestart-":
             ID = client.recv(BUFSIZ).decode("utf8").strip(" ")
@@ -428,10 +473,17 @@ def handleClient(client):  # Takes client socket as argument.
                 client.sendall(bytes("-changefail-", "utf8"))
             else:
                 data[ID]["start"] = newTimeStart
+                updateState(ID)
+                res = [timeMatch[ID], data[ID]["team1"]["name"],
+                       "? : ?", data[ID]["team2"]["name"]]
                 client.sendall(bytes("-changecompleted-", "utf8"))
+                objRes = {}
+                objRes["send"] = res
+                client.sendall(pickle.dumps(objRes))
                 with open('data.json', 'w') as f:
                     json.dump(data, f)
                     f.close()
+                    
         elif message == "-logout-":
             isLogin = False
             loginStatusList[currentName] = False
@@ -510,5 +562,6 @@ tUI.start()
 
 loadAccountData()
 root.config(bg="#CECCBE")
+root.resizable(False,False)
 root.protocol("WM_DELETE_WINDOW", onClosing)
 root.mainloop()
