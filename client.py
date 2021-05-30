@@ -467,7 +467,7 @@ def adminWindow():
                                                 values=(str(i-1), event[1]+'\'', "", "", event[0]+" bị thẻ đỏ"))
                             i += 1
 
-                    showSuccess("Đã xóa thành công")
+                        showSuccess("Đã xóa thành công")
                 else:
                     showErr("Phải nhập vào một số")
             else:
