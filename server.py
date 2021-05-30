@@ -215,7 +215,7 @@ def handleClient(client):  # Takes client socket as argument.
             if (message == "-detailmatch-"):
                 client.sendall(pickle.dumps(listEvent))
             else:
-                sTTRemove = int(client.recv(1024).decode("utf8"))
+                sTTRemove = int(client.recv(1024).decode("utf8").strip(" "))
                 if (sTTRemove > len(events)+1):
                     client.sendall(bytes("-removefail-", "utf8"))
                 else:

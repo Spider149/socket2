@@ -414,65 +414,65 @@ def adminWindow():
                 if (sTTRemove.isnumeric()):
                     if (int(sTTRemove)==0):
                         sTTRemove="100000"
-                    try:
-                        clientSocket.sendall(bytes(sTTRemove, "utf8"))
-                    except:
-                        showErr("Lối kết nối đến server")
-                        return
-                    removeComplete = clientSocket.recv(BUFSIZ).decode("utf8")
-                    if (removeComplete == "-removefail-"):
-                        showErr("Số thứ tự không hợp lệ")
-                    else:
-                        details = pickle.loads(
-                            clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
-                        tree.delete(*tree.get_children())
-                        i = 2
-                        t1Score = 0
-                        t2Score = 0
-                        tree.insert("", 'end', text="L"+str(0),
-                                    values=("", details[0][0], details[0][1], details[0][2], details[0][3]))
-                        tree.insert("", 'end', text="L"+str(1))
-                        HTadded = False
-                        for event in details[1]:
-                            if(event[3] == '1'):
-                                if int(event[1]) > 45:
-                                    if(not HTadded):
-                                        tree.insert("", 'end', text="L"+str(i),
-                                                    values=(str(i-1), "HT", "", str(t1Score)+":"+str(t2Score), ""))
-                                        HTadded = True
-                                        i += 1
-                                if(event[2] == "score"):
-                                    t1Score += 1
-                                    tree.insert("", 'end', text="L"+str(i),
-                                                values=(str(i-1), event[1]+'\'', event[0]+" ghi bàn", str(t1Score)+":"+str(t2Score), ""))
-                                if(event[2] == "yellow"):
-                                    tree.insert("", 'end', text="L"+str(i),
-                                                values=(str(i-1), event[1]+'\'', event[0]+" bị thẻ vàng", "", ""))
-                                if(event[2] == "red"):
-                                    tree.insert("", 'end', text="L"+str(i),
-                                                values=(str(i-1), event[1]+'\'', event[0]+" bị thẻ đỏ", "", ""))
-                            if(event[3] == '2'):
-                                if int(event[1]) > 45:
-                                    if(not HTadded):
-                                        tree.insert("", 'end', text="L"+str(i),
-                                                    values=(str(i-1), "HT", "", str(t1Score)+":"+str(t2Score), ""))
-                                        HTadded = True
-                                        i += 1
-                                if(event[2] == "score"):
-                                    t2Score += 1
-                                    tree.insert("", 'end', text="L"+str(i),
-                                                values=(str(i-1), event[1]+'\'', "", str(t1Score)+":"+str(t2Score), event[0]+" ghi bàn"))
-                                if(event[2] == "yellow"):
-                                    tree.insert("", 'end', text="L"+str(i),
-                                                values=(str(i-1), event[1]+'\'', "", "", event[0]+" bị thẻ vàng"))
-                                if(event[2] == "red"):
-                                    tree.insert("", 'end', text="L"+str(i),
-                                                values=(str(i-1), event[1]+'\'', "", "", event[0]+" bị thẻ đỏ"))
-                            i += 1
-
-                        showSuccess("Đã xóa thành công")
                 else:
-                    showErr("Số thứ tự không hợp lệ")
+                    sTTRemove="100000"
+                try:
+                    clientSocket.sendall(bytes(sTTRemove, "utf8"))
+                except:
+                    showErr("Lối kết nối đến server")
+                    return
+                removeComplete = clientSocket.recv(BUFSIZ).decode("utf8")
+                if (removeComplete == "-removefail-"):
+                    showErr("Số thứ tự không hợp lệ sdfsdff")
+                else:
+                    details = pickle.loads(
+                        clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
+                    tree.delete(*tree.get_children())
+                    i = 2
+                    t1Score = 0
+                    t2Score = 0
+                    tree.insert("", 'end', text="L"+str(0),
+                                values=("", details[0][0], details[0][1], details[0][2], details[0][3]))
+                    tree.insert("", 'end', text="L"+str(1))
+                    HTadded = False
+                    for event in details[1]:
+                        if(event[3] == '1'):
+                            if int(event[1]) > 45:
+                                if(not HTadded):
+                                    tree.insert("", 'end', text="L"+str(i),
+                                                values=(str(i-1), "HT", "", str(t1Score)+":"+str(t2Score), ""))
+                                    HTadded = True
+                                    i += 1
+                            if(event[2] == "score"):
+                                t1Score += 1
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1), event[1]+'\'', event[0]+" ghi bàn", str(t1Score)+":"+str(t2Score), ""))
+                            if(event[2] == "yellow"):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1), event[1]+'\'', event[0]+" bị thẻ vàng", "", ""))
+                            if(event[2] == "red"):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1), event[1]+'\'', event[0]+" bị thẻ đỏ", "", ""))
+                        if(event[3] == '2'):
+                            if int(event[1]) > 45:
+                                if(not HTadded):
+                                    tree.insert("", 'end', text="L"+str(i),
+                                                values=(str(i-1), "HT", "", str(t1Score)+":"+str(t2Score), ""))
+                                    HTadded = True
+                                    i += 1
+                            if(event[2] == "score"):
+                                t2Score += 1
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1), event[1]+'\'', "", str(t1Score)+":"+str(t2Score), event[0]+" ghi bàn"))
+                            if(event[2] == "yellow"):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1), event[1]+'\'', "", "", event[0]+" bị thẻ vàng"))
+                            if(event[2] == "red"):
+                                tree.insert("", 'end', text="L"+str(i),
+                                            values=(str(i-1), event[1]+'\'', "", "", event[0]+" bị thẻ đỏ"))
+                        i += 1
+
+                    showSuccess("Đã xóa thành công")
             else:
                 showErr("ID không tồn tại")
 
