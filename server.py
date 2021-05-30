@@ -216,7 +216,7 @@ def handleClient(client):  # Takes client socket as argument.
                 client.sendall(pickle.dumps(listEvent))
             else:
                 sTTRemove = int(client.recv(1024).decode("utf8").strip(" "))
-                if (sTTRemove > len(events)+1):
+                if (sTTRemove > len(events)+1 or len(events)==0):
                     client.sendall(bytes("-removefail-", "utf8"))
                 else:
                     client.sendall(bytes("-removesuccess-", "utf8"))
@@ -555,6 +555,7 @@ root = Tk()
 tUI = thread.Thread(target=threadUI)
 tUI.start()
 
+loadMatchData()
 loadAccountData()
 root.config(bg="#CECCBE")
 root.resizable(False, False)
