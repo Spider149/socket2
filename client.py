@@ -423,7 +423,7 @@ def adminWindow():
                     return
                 removeComplete = clientSocket.recv(BUFSIZ).decode("utf8")
                 if (removeComplete == "-removefail-"):
-                    showErr("Số thứ tự không hợp lệ sdfsdff")
+                    showErr("Số thứ tự không hợp lệ")
                 else:
                     details = pickle.loads(
                         clientSocket.recv(BUFSIZ*BUFSIZ))["send"]
@@ -536,7 +536,7 @@ def adminWindow():
             if (not timeEve.isnumeric()):
                 showErr("Thời gian phải là một con số")
                 return
-            if (int(timeEve) >= 90):
+            if (int(timeEve) > 90):
                 showErr("Thời gian không hợp lệ")
                 return
             try:

@@ -80,11 +80,11 @@ def updateState(pid):
             timeTemp.hour, timeTemp.minute)
     else:
         if (deltaTime < 45):
-            timeMatch[pid] = str(deltaTime) + "\'"
+            timeMatch[pid] = str(deltaTime+1) + "\'"
         elif (deltaTime < 60):
             timeMatch[pid] = "HT"
         elif (deltaTime < 105):
-            timeMatch[pid] = str(deltaTime - 15) + "\'"
+            timeMatch[pid] = str(deltaTime - 15 + 1) + "\'"
         else:
             timeMatch[pid] = "FT"
 
@@ -295,7 +295,7 @@ def handleClient(client):  # Takes client socket as argument.
                 f.close()
 
         elif message == "-removematch-":
-            ID = client.recv(1024).decode("utf8").strip(" ")
+            ID = client.recv(BUFSIZ).decode("utf8").strip(" ")
             if (ID not in data.keys()):
                 client.sendall(bytes("-notexist-", "utf8"))
                 continue
@@ -341,6 +341,7 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
+                    checkAdded = False
             elif (addIn == "-team1red-"):
                 if (timeMatch[ID] == "FT"):
                     details["team1"]["red_card"].append(
@@ -354,6 +355,7 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
+                    checkAdded = False
             elif (addIn == "-team1yellow-"):
                 if (timeMatch[ID] == "FT"):
                     details["team1"]["yellow_card"].append(
@@ -369,6 +371,7 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
+                    checkAdded = False
             elif (addIn == "-team2score-"):
                 if (timeMatch[ID] == "FT"):
                     details["team2"]["scorer"].append(
@@ -382,6 +385,7 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
+                    checkAdded = False
             elif (addIn == "-team2red-"):
                 if (timeMatch[ID] == "FT"):
                     details["team2"]["red_card"].append(
@@ -395,6 +399,7 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
+                    checkAdded = False
             elif (addIn == "-team2yellow-"):
                 if (timeMatch[ID] == "FT"):
                     details["team2"]["yellow_card"].append(
@@ -410,6 +415,7 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
+                    checkAdded = False
             else:
                 client.sendall(bytes("-addfail-", "utf8"))
                 checkAdded = False
