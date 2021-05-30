@@ -412,10 +412,10 @@ def adminWindow():
             if (complete == "getsuccess"):
                 sTTRemove = removeEvent.get()
                 if (sTTRemove.isnumeric()):
-                    if (int(sTTRemove)==0):
-                        sTTRemove="100000"
+                    if (int(sTTRemove) == 0):
+                        sTTRemove = "100000"
                 else:
-                    sTTRemove="100000"
+                    sTTRemove = "100000"
                 try:
                     clientSocket.sendall(bytes(sTTRemove, "utf8"))
                 except:
@@ -536,12 +536,11 @@ def adminWindow():
             if (not timeEve.isnumeric()):
                 showErr("Thời gian phải là một con số")
                 return
-            if (int(timeEve) > 90):
-                showErr("Thời gian không hợp lệ")
+            if (int(timeEve) > 90 or int(timeEve) < 1):
+                showErr("Thời gian phải từ 1-90")
                 return
             try:
                 clientSocket.sendall(bytes("-addevent-", "utf8"))
-
                 IDdetails = ID.get()
                 clientSocket.sendall(bytes(IDdetails, "utf8"))
             except:

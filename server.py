@@ -216,7 +216,7 @@ def handleClient(client):  # Takes client socket as argument.
                 client.sendall(pickle.dumps(listEvent))
             else:
                 sTTRemove = int(client.recv(1024).decode("utf8").strip(" "))
-                if (sTTRemove > len(events)+1 or len(events)==0):
+                if (sTTRemove > len(events)+1 or len(events) == 0):
                     client.sendall(bytes("-removefail-", "utf8"))
                 else:
                     client.sendall(bytes("-removesuccess-", "utf8"))
@@ -301,7 +301,7 @@ def handleClient(client):  # Takes client socket as argument.
                 continue
             loadMatchData()
             updateState(ID)
-            
+
             if (":" not in timeMatch[ID]):
                 client.sendall(bytes("-removefail-", "utf8"))
             else:
@@ -329,13 +329,18 @@ def handleClient(client):  # Takes client socket as argument.
             details = data[ID]
             checkAdded = True
             if (addIn == "-team1score-"):
-                if (timeMatch[ID] == "FT"): 
+                if (timeMatch[ID] == "FT"):
                     details["team1"]["scorer"].append(
                         [namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
-                elif (timeMatch[ID] == "HT" and int(timeEve) <= 45):
-                    details["team1"]["scorer"].append([namePlayer, timeEve])
-                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (timeMatch[ID] == "HT"):
+                    if(int(timeEve) <= 45):
+                        details["team1"]["scorer"].append(
+                            [namePlayer, timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                        checkAdded = False
                 elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
                     details["team1"]["scorer"].append([namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
@@ -347,9 +352,14 @@ def handleClient(client):  # Takes client socket as argument.
                     details["team1"]["red_card"].append(
                         [namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
-                elif (timeMatch[ID] == "HT" and int(timeEve) <= 45):
-                    details["team1"]["red_card"].append([namePlayer, timeEve])
-                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (timeMatch[ID] == "HT"):
+                    if(int(timeEve) <= 45):
+                        details["team1"]["red_card"].append(
+                            [namePlayer, timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                        checkAdded = False
                 elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
                     details["team1"]["red_card"].append([namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
@@ -361,10 +371,14 @@ def handleClient(client):  # Takes client socket as argument.
                     details["team1"]["yellow_card"].append(
                         [namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
-                elif (timeMatch[ID] == "HT" and int(timeEve) <= 45):
-                    details["team1"]["yellow_card"].append(
-                        [namePlayer, timeEve])
-                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (timeMatch[ID] == "HT"):
+                    if(int(timeEve) <= 45):
+                        details["team1"]["yellow_card"].append(
+                            [namePlayer, timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                        checkAdded = False
                 elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
                     details["team1"]["yellow_card"].append(
                         [namePlayer, timeEve])
@@ -377,9 +391,15 @@ def handleClient(client):  # Takes client socket as argument.
                     details["team2"]["scorer"].append(
                         [namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
-                elif (timeMatch[ID] == "HT" and int(timeEve) <= 45):
-                    details["team2"]["scorer"].append([namePlayer, timeEve])
-                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (timeMatch[ID] == "HT"):
+                    if(int(timeEve) <= 45):
+                        details["team2"]["scorer"].append(
+                            [namePlayer, timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                        checkAdded = False
+
                 elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
                     details["team2"]["scorer"].append([namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
@@ -391,9 +411,14 @@ def handleClient(client):  # Takes client socket as argument.
                     details["team2"]["red_card"].append(
                         [namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
-                elif (timeMatch[ID] == "HT" and int(timeEve) <= 45):
-                    details["team2"]["red_card"].append([namePlayer, timeEve])
-                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (timeMatch[ID] == "HT"):
+                    if(int(timeEve) <= 45):
+                        details["team2"]["red_card"].append(
+                            [namePlayer, timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                        checkAdded = False
                 elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
                     details["team2"]["red_card"].append([namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
@@ -405,10 +430,14 @@ def handleClient(client):  # Takes client socket as argument.
                     details["team2"]["yellow_card"].append(
                         [namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
-                elif (timeMatch[ID] == "HT" and int(timeEve) <= 45):
-                    details["team2"]["yellow_card"].append(
-                        [namePlayer, timeEve])
-                    client.sendall(bytes("-addcomplete-", "utf8"))
+                elif (timeMatch[ID] == "HT"):
+                    if(int(timeEve) <= 45):
+                        details["team2"]["yellow_card"].append(
+                            [namePlayer, timeEve])
+                        client.sendall(bytes("-addcomplete-", "utf8"))
+                    else:
+                        client.sendall(bytes("-addfail-", "utf8"))
+                        checkAdded = False
                 elif (int(timeMatch[ID][0:timeMatch[ID].find("'")]) >= int(timeEve)):
                     details["team2"]["yellow_card"].append(
                         [namePlayer, timeEve])
@@ -478,7 +507,7 @@ def handleClient(client):  # Takes client socket as argument.
             client.sendall(bytes("getsuccess", "utf8"))
             newTimeStart = client.recv(BUFSIZ).decode("utf8")
             updateState(ID)
-            if (":" not in timeMatch[ID] or newTimeStart=="None"):
+            if (":" not in timeMatch[ID] or newTimeStart == "None"):
                 client.sendall(bytes("-changefail-", "utf8"))
             else:
                 data[ID]["start"] = newTimeStart
