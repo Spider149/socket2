@@ -296,13 +296,12 @@ def handleClient(client):  # Takes client socket as argument.
 
         elif message == "-removematch-":
             ID = client.recv(1024).decode("utf8").strip(" ")
-            loadMatchData()
-            try:
-                updateState(ID)
-            except:
+            if (ID not in data.keys()):
                 client.sendall(bytes("-notexist-", "utf8"))
-                return
-
+                continue
+            loadMatchData()
+            updateState(ID)
+            
             if (":" not in timeMatch[ID]):
                 client.sendall(bytes("-removefail-", "utf8"))
             else:
