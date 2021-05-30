@@ -216,7 +216,7 @@ def handleClient(client):  # Takes client socket as argument.
                 client.sendall(pickle.dumps(listEvent))
             else:
                 sTTRemove = int(client.recv(1024).decode("utf8"))
-                if (sTTRemove > len(events)+1 or sTTRemove == 0):
+                if (sTTRemove > len(events)+1):
                     client.sendall(bytes("-removefail-", "utf8"))
                 else:
                     client.sendall(bytes("-removesuccess-", "utf8"))
@@ -301,7 +301,7 @@ def handleClient(client):  # Takes client socket as argument.
                 continue
             loadMatchData()
             updateState(ID)
-
+            
             if (":" not in timeMatch[ID]):
                 client.sendall(bytes("-removefail-", "utf8"))
             else:
@@ -329,7 +329,7 @@ def handleClient(client):  # Takes client socket as argument.
             details = data[ID]
             checkAdded = True
             if (addIn == "-team1score-"):
-                if (timeMatch[ID] == "FT"):
+                if (timeMatch[ID] == "FT"): 
                     details["team1"]["scorer"].append(
                         [namePlayer, timeEve])
                     client.sendall(bytes("-addcomplete-", "utf8"))
@@ -341,7 +341,6 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
-                    checkAdded = False
             elif (addIn == "-team1red-"):
                 if (timeMatch[ID] == "FT"):
                     details["team1"]["red_card"].append(
@@ -355,7 +354,6 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
-                    checkAdded = False
             elif (addIn == "-team1yellow-"):
                 if (timeMatch[ID] == "FT"):
                     details["team1"]["yellow_card"].append(
@@ -371,7 +369,6 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
-                    checkAdded = False
             elif (addIn == "-team2score-"):
                 if (timeMatch[ID] == "FT"):
                     details["team2"]["scorer"].append(
@@ -385,7 +382,6 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
-                    checkAdded = False
             elif (addIn == "-team2red-"):
                 if (timeMatch[ID] == "FT"):
                     details["team2"]["red_card"].append(
@@ -399,7 +395,6 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
-                    checkAdded = False
             elif (addIn == "-team2yellow-"):
                 if (timeMatch[ID] == "FT"):
                     details["team2"]["yellow_card"].append(
@@ -415,7 +410,6 @@ def handleClient(client):  # Takes client socket as argument.
                     client.sendall(bytes("-addcomplete-", "utf8"))
                 else:
                     client.sendall(bytes("-addfail-", "utf8"))
-                    checkAdded = False
             else:
                 client.sendall(bytes("-addfail-", "utf8"))
                 checkAdded = False
@@ -472,14 +466,13 @@ def handleClient(client):  # Takes client socket as argument.
 
         elif message == "-settimestart-":
             ID = client.recv(BUFSIZ).decode("utf8").strip(" ")
-
             if (ID not in data.keys()):
                 client.sendall(bytes("getfail", "utf8"))
                 continue
             client.sendall(bytes("getsuccess", "utf8"))
-            newTimeStart = client.recv(BUFSIZ).decode("utf8").strip(" ")
+            newTimeStart = client.recv(BUFSIZ).decode("utf8")
             updateState(ID)
-            if (":" not in timeMatch[ID]):
+            if (":" not in timeMatch[ID] or newTimeStart=="None"):
                 client.sendall(bytes("-changefail-", "utf8"))
             else:
                 data[ID]["start"] = newTimeStart
@@ -563,7 +556,6 @@ tUI = thread.Thread(target=threadUI)
 tUI.start()
 
 loadAccountData()
-loadMatchData()
 root.config(bg="#CECCBE")
 root.resizable(False, False)
 root.protocol("WM_DELETE_WINDOW", onClosing)
