@@ -491,6 +491,8 @@ def adminWindow():
             if (complete == "getsuccess"):
                 checkTime = None
                 newTimeStart = changeTimeStart.get()
+                if (len(newTimeStart.strip(" "))==0):
+                    newTimeStart = "0"
                 try:
                     checkTime = datetime.datetime.strptime(
                         newTimeStart.strip(" ")+":00", '%Y-%m-%d %H:%M:%S')
@@ -504,6 +506,11 @@ def adminWindow():
                     return
 
                 if (checkTime < datetime.datetime.now()):
+                    try:
+                        clientSocket.sendall(bytes("None", "utf8"))
+                    except:
+                        pass
+                    clientSocket.recv(BUFSIZ).decode("utf8")
                     showErr("Thời gian không hợp lệ")
                     return
 
