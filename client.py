@@ -340,7 +340,6 @@ def adminWindow():
         def sendID():
             try:
                 clientSocket.sendall(bytes("-detailmatch-", "utf8"))
-
                 IDdetails = ID.get()
                 clientSocket.sendall(bytes(IDdetails+" ", "utf8"))
             except:
@@ -401,7 +400,6 @@ def adminWindow():
         def removeEve():
             try:
                 clientSocket.sendall(bytes("-removeevent-", "utf8"))
-
                 IDdetails = ID.get()
                 clientSocket.sendall(bytes(IDdetails+" ", "utf8"))
             except:
@@ -410,7 +408,7 @@ def adminWindow():
             complete = clientSocket.recv(BUFSIZ).decode("utf8")
             if (complete == "getsuccess"):
                 sTTRemove = removeEvent.get()
-                if (sTTRemove.isnumeric()):
+                if (sTTRemove.isnumeric() and int(sTTRemove) > 0):
                     try:
                         clientSocket.sendall(bytes(sTTRemove, "utf8"))
                     except:
@@ -469,7 +467,9 @@ def adminWindow():
 
                         showSuccess("Đã xóa thành công")
                 else:
-                    showErr("Phải nhập vào một số")
+                    clientSocket.sendall(bytes("0", "utf8"))
+                    clientSocket.recv(BUFSIZ)
+                    showErr("Phải nhập vào một số lớn hơn 0")
             else:
                 showErr("ID không tồn tại")
 
@@ -525,12 +525,11 @@ def adminWindow():
             if (len(namePlayer) == 0):
                 showErr("Không được để trống tên cầu thủ")
                 return
-            if (not timeEve.isnumeric()):
-                showErr("Thời gian phải là một con số")
+            if (not timeEve.isnumeric() or int(timeEve) < 1 or int(timeEve) > 90):
+                showErr("Thời gian phải là một số nguyên từ 1-90")
                 return
             try:
                 clientSocket.sendall(bytes("-addevent-", "utf8"))
-
                 IDdetails = ID.get()
                 clientSocket.sendall(bytes(IDdetails, "utf8"))
             except:
@@ -557,7 +556,6 @@ def adminWindow():
                         eventAdded["addIn"] = "-team2red-"
                     elif (eventSelected == 2):  # thẻ vàng
                         eventAdded["addIn"] = "-team2yellow-"
-
                 try:
                     clientSocket.sendall(pickle.dumps(eventAdded))
                 except:
@@ -614,7 +612,7 @@ def adminWindow():
                         i += 1
                     showSuccess("Đã thêm thành công")
                 else:
-                    showErr("Hãy chọn sự kiện và nhập thời gian hợp lệ")
+                    showErr("Hãy chọn đội, sự kiện và nhập thời gian hợp lệ")
             elif (complete == "nochange"):
                 showErr("Không thể cập nhật cho trận đấu chưa diễn ra")
             else:
