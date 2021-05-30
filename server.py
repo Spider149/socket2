@@ -327,7 +327,7 @@ def handleClient(client):  # Takes client socket as argument.
             namePlayer = eventAdded["name"]
             timeEve = eventAdded["time"]
             details = data[ID]
-            checkAdded = False
+            checkAdded = True
             if (addIn == "-team1score-"):
                 if (timeMatch[ID] == "FT"):
                     details["team1"]["scorer"].append(
